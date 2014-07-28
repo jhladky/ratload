@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <termios.h>
 #include <fcntl.h>
 #include <sys/types.h>
 
@@ -14,8 +15,9 @@ static inline char int_to_char(const uint8_t in);
 static inline void force_quit(const char* phrase);
 
 int main(const int argc, const char * argv[]) {
+   struct termios options;
    uint8_t progRomArr[1024][5], c, topC;
-   char progRomProper[1024][5];
+   char progRomProper[1024][5], confirm, start = 0X78; //0X78 == '~'
    FILE * prog_rom; //fix this variable name later
    int fd, i, j, pNdx, sNdx;
 
@@ -55,10 +57,10 @@ int main(const int argc, const char * argv[]) {
          progRomArr[(i * 16) + ((63 - j) / 4)][j % 4 + 1] = c;
       }
       //the " at the end of the string:
-      fgetc(prog_rom); 
+      fgetc(prog_rom);
       loop_to_array(prog_rom);
    }
-  
+
    //loop through the INITP prog_rom array
    for (i = 0; i < 8; i++) {
       for (j = 0; j < 64; j++) {
@@ -81,9 +83,9 @@ int main(const int argc, const char * argv[]) {
          c &= 0x03;
          progRomArr[(i * 128) + ((63 - j) * 2)][0] = c;
       }
-    
+
       fgetc(prog_rom);
-      loop_to_array(prog_rom); 
+      loop_to_array(prog_rom);
    }
 
    fclose(prog_rom);
@@ -94,55 +96,54 @@ int main(const int argc, const char * argv[]) {
          progRomProper[i][j] = int_to_char(progRomArr[i][j]);
       }
    }
-  
-  //configuration of the serial port
-  /*fd.SetBaudRate(SerialStreamBuf::BAUD_9600);
-  fd.SetCharSize(SerialStreamBuf::CHAR_SIZE_8);
-  fd.SetNumOfStopBits(1);
-  fd.SetParity(SerialStreamBuf::PARITY_ODD);
-  fd.SetFlowControl(SerialStreamBuf::FLOW_CONTROL_NONE); */
-  
-  //make sure it can run at the proper baud rate
-  /*if(fd.BaudRate() != SerialStreamBuf::BAUD_9600) {
-    printf("TTY cannot operate at necessary baud rate.\n");
-    exit(EXIT_FAILURE);
-    }*/
 
-  //double check configuration
-  /*if(!fd.good()) {
-    force_quit("Serial Configuration failed");
-    }*/
-  
-  //const char start = 0x7e; //a ~
-  //char confirm = 0x7f;
+   //configuration of the serial port
+   if (tcgetattr(fd, &options) == -1) {
+      force_quit("Serial Configuration failed.");
+   }
 
-  //send the start byte, wait until we get it back
-  //then we can start sending the actual data
- 
-  /*for(int i=0; i<32; i++) {  
-    for(int j=4; j>-1; j--) {   
-      cout << progRomProper[i][j]; 
-    }
-    cout << endl;
-    }*/
+   cfsetispeed(&options, B9600);
+   cfsetospeed(&options, B9600);
+   options.c_cflag |= (CLOCAL | CREAD);
+   options.c_cflag |= PARENB;
+   options.c_cflag |= PARODD;
+   options.c_cflag &= ~CSTOPB;
+   options.c_cflag &= ~CSIZE;
+   options.c_cflag |= CS8;
+   options.c_cflag &= ~CRTSCTS; //disable hardware flow control
 
-  /*fd.write(&start, 1);
-  while(confirm != start) {
-    fd.read(&confirm, 1);
-    }*/
+   if (tcsetattr(fd, TCSANOW, &options) == -1) {
+      force_quit("Serial Configuration failed");
+   }
+
+   confirm = 0x7f;
+
+   //for debugging
+   /*for (i = 0; i < 32; i++) {
+      for (j = 4; j > -1; j--) {
+         printf("%c", progRomProper[i][j]);
+      }
+      printf("\n");
+      }*/
+
+   //send the start byte, wait until we get it back
+   //then we can start sending the actual data
+   if (write(fd, &start, 1) < 1 ||
+      read(fd, &confirm, 1) < 1) {
+      force_quit("Error communicating with Nexys2 board.\n");
+   }
 
    printf("Connection opened: sending data...");
 
-  //send the instructions to the UART
-  /*for(i = 0; i < 1024; i++) {
-    for(j = 4; j > -1; j--) {
-      fd.write(&progRomProper[i][j], 1);
-      while(confirm != progRomProper[i][j]) {
-        fd.read(&confirm, 1);
+   //send the instructions to the UART
+   for (i = 0; i < 1024; i++) {
+      for (j = 4; j > -1; j--) {
+         if (write(fd, &progRomProper[i][j], 1) < 1 ||
+             read(fd, &confirm, 1) < 1) {
+            force_quit("Error communicating with Nexys2 board.\n");
+         }
       }
-      confirm = 0x7f;
-    }
-    }*/
+   }
 
    printf("Finished!\n");
    close(fd);
@@ -166,7 +167,7 @@ static void check_args(const int argc, const char* argv[]) {
 //loop to get to the beginning of the data
 static void loop_to_array(FILE* prog_rom) {
    char a = ' ';
-  
+
    while (a != '"') {
       a = fgetc(prog_rom);
    }
