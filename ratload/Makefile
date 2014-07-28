@@ -1,13 +1,13 @@
-# Makefile for RATLoad
+# Makefile for ratload program
 
 CC=gcc
 CFLAGS=-O3 -Wall -Wextra -pedantic -D_BSD_SOURCE -std=c99
 
-RATLoad: RATLoad.o
-	$(CC) $(CFLAGS) -o $@ RATLoad.o
+ratload: ratload.o
+	$(CC) $(CFLAGS) -o $@ ratload.o
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm RATLoad *.o
+	rm ratload *.o

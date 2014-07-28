@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
-#include "RATLoad.h"
+#include "ratload.h"
 
 static void check_args(const int argc, const char * argv[]);
 static void loop_to_array(FILE * prog_rom);
@@ -183,6 +183,7 @@ static inline char int_to_char(const uint8_t in) {
 
 static inline uint8_t char_to_int(const char in) {
    //fill me out
+   return in;
 }
 
 static inline void force_quit(const char* phrase) {
