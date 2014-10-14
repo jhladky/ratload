@@ -19,7 +19,7 @@ int main(const int argc, const char * argv[]) {
    struct termios options;
    uint8_t progRomArr[PROG_ROM_LINES][PROG_ROM_SEGS], c, topC;
    char progRomProper[PROG_ROM_LINES][PROG_ROM_SEGS];
-   char confirm, start = 0X78; //0X78 == '~'
+   char confirm, start = 0X7E; //0X78 == '~'
    FILE * prog_rom; //fix this variable name later
    int fd, i, j, pNdx, sNdx;
 
@@ -118,7 +118,7 @@ int main(const int argc, const char * argv[]) {
       force_quit("Serial Configuration failed");
    }
 
-   //confirm = 0x7f;
+   //confirm = 0x7F;
 
    //for debugging
 #ifdef DEBUG
@@ -137,7 +137,7 @@ int main(const int argc, const char * argv[]) {
       force_quit("Error communicating with Nexys2 board.\n");
    }
 
-   printf("Connection opened: sending data...");
+   fprintf(stderr, "Connection opened: sending data...");
 
    //send the instructions to the UART
    for (i = 0; i < 1024; i++) {
