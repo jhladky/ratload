@@ -42,3 +42,5 @@ RAT_CPU/*.csv
 RAT_CPU/*.txt
 RAT_CPU/*.xml
 
+#binaries
+ratload

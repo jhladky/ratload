@@ -147,6 +147,9 @@ int main(const int argc, const char * argv[]) {
             force_quit("Error communicating with Nexys2 board.\n");
          }
       }
+      if (!(i % 100)) {
+	fprintf(stderr, ".");
+      }
    }
 
    printf("Finished!\n");
