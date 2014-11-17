@@ -1,7 +1,34 @@
-# C object files
+# Object files
 *.o
+*.ko
+*.obj
+*.elf
 
-# ISE-generated project files
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# ISE Project Files
 RAT_CPU/_ngo/
 RAT_CPU/_xmsgs/
 RAT_CPU/iseconfig/
@@ -42,5 +69,30 @@ RAT_CPU/*.csv
 RAT_CPU/*.txt
 RAT_CPU/*.xml
 
-#binaries
+# Binaries
 ratload
+
+# http://www.gnu.org/software/automake
+Makefile.in
+
+# http://www.gnu.org/software/autoconf
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/.deps
+
+autoscan.log
+configure.scan
+config.h
+config.h.in
+config.log
+config.status
+/ratload-1
+
+*.tar.gz
+Makefile

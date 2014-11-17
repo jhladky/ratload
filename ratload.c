@@ -148,7 +148,7 @@ int main(const int argc, const char * argv[]) {
          }
       }
       if (!(i % 100)) {
-	fprintf(stderr, ".");
+         fprintf(stderr, ".");
       }
    }
 
