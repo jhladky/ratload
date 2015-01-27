@@ -1,0 +1,49 @@
+\documentclass[titlepage]{article}
+\usepackage{courier}
+\usepackage{times}
+\usepackage{fullpage}
+\usepackage{hhline}
+\usepackage{tabular x}
+\usepackage{mdframed}
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
+
+\begin{document}
+\title{\huge{\texttt{ratload}\\ Installation and Use}}
+\author{
+  Jacob Hladky\\
+  California Polytechnic State University\\
+  San Luis Obispo, CA\\
+  \texttt{jhladky@calpoly.edu}
+}
+\vfill
+\date{\today}
+\maketitle
+
+\pagenumbering{roman}
+
+\tableofcontents
+\clearpage
+
+\pagenumbering{arabic}
+
+\section{Introduction}
+The ratload system consists of two separate components: a computer program and a set of VHDL modules. This guide will detail how to install, configure and run both. The following section explains how to install both components. To get the \texttt{ratload} system up and running it is required to follow the instructions in the \emph{Components Installation} section, and then either of the \emph{Program Installation} sections, depending on the target operating system.
+
+\section{Installation}
+\subsection{Components Installation on RAT CPU}
+\subsection{Program Installation on GNU/Linux or OS X}
+The two operating systems (or families of operating systems) listed in the sub-section header are only three specific examples of OSes that should be able to run the \emph{ratload} program. It should build and run on any POSIX-compliant OS.\\\\
+To build the ratload program, \texttt{cd} into the 'ratload' directory and build the program with \texttt{make}. There is no installation step. To use the \emph{ratload} binary simply copy it to some convenient location (such as a personal bin folder).
+
+\subsection{Program Installation on Windows}
+Windows users must use the winRATLoad program\\\\
+The 'winRATLoad' folder contains the winRATLoad program. Copy the entire folder to somewhere useful for you. The winRATLoad.exe binary must remain in the folder to function properly. The binary is otherwise self contained and no other installation is necessary.
+
+
+\section{Use}
+\section{Troubleshooting}
+
+\end{document}
+
+

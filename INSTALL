@@ -1,5 +1,0 @@
-Installation Instructions
-=========================
-
-* To build ratload, run `./configure && make`. The binary will be called "ratload".
-* Installation with `sudo make install` is not necesary.

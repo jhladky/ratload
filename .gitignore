@@ -95,4 +95,10 @@ config.status
 /ratload-1
 
 *.tar.gz
-Makefile
+# LaTeX temporary files
+*.aux
+*.dvi
+*.toc
+README.log
+   
+
