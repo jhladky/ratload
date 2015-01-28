@@ -1,4 +1,4 @@
-\documentclass[titlepage]{article}
+\documentclass[notitlepage]{article}
 \usepackage{courier}
 \usepackage{times}
 \usepackage{fullpage}
@@ -6,9 +6,18 @@
 \usepackage{tabular x}
 \usepackage{mdframed}
 \usepackage{titlesec}
+\usepackage[clock]{ifsym}
 \newcommand{\sectionbreak}{\clearpage}
+\newcommand{\warningsign}{\fontencoding{U}\fontfamily{futs}\selectfont\char 66\relax}
+\newmdenv[linecolor=black,skipabove=\topsep,skipbelow=\topsep,
+leftmargin=0pt,rightmargin=0pt,
+innerleftmargin=5pt,innerrightmargin=5pt]{infobox}
+\makeatletter
+\newcommand*{\toccontents}{\@starttoc{toc}}
+\makeatother
 
 \begin{document}
+
 \title{\huge{\texttt{ratload}\\ Installation and Use}}
 \author{
   Jacob Hladky\\
@@ -16,34 +25,152 @@
   San Luis Obispo, CA\\
   \texttt{jhladky@calpoly.edu}
 }
-\vfill
 \date{\today}
 \maketitle
 
-\pagenumbering{roman}
-
-\tableofcontents
-\clearpage
+\toccontents
 
 \pagenumbering{arabic}
 
 \section{Introduction}
-The ratload system consists of two separate components: a computer program and a set of VHDL modules. This guide will detail how to install, configure and run both. The following section explains how to install both components. To get the \texttt{ratload} system up and running it is required to follow the instructions in the \emph{Components Installation} section, and then either of the \emph{Program Installation} sections, depending on the target operating system.
+The ratload system consists of two separate components: a computer program and a set of VHDL modules. This guide will detail how to install, configure and run both. It is necesssary to follow the instructions in the \emph{Integration} section, and then either of the \emph{Installation} sections, depending on the target operating system.
+\subsection{Requirements}
+If you have a Nexys 2 board --- You will need a serial cable. If your computer does not have a serial port, then you will need a USB-to-serial adapter.\\
+If you have a Nexys 3 board --- No serial cable is required, as an onboard FTDI chip provides serial emulation.\\\\
+Do not integrate ratload into your RAT CPU until all the major components of the CPU are in place, and you have a good understanding of how they fit together. Understanding how the RAT architecture handles I/O and interrupts will make integration much easier.
+\subsection{Bug Reporting}
+All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in either the ratload or the winRATLoad program, please contact the author. It is also possible (albeit significantly less likely) that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.
+\begin{infobox}
+\textbf{PLEASE KEEP IN MIND --- } Since you are writing the mechanics of the CPU itself, it is possible for very odd bugs to happen, and for those bugs to interact with \texttt{ratload} in bizarre ways. Although it may seem like there is a problem with \texttt{ratload}, it has been thoroughly tested and is almost certainly free of any major bugs.
+\end{infobox}
+
+\subsection{Contact}
+If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author.
+
 
 \section{Installation}
-\subsection{Components Installation on RAT CPU}
-\subsection{Program Installation on GNU/Linux or OS X}
-The two operating systems (or families of operating systems) listed in the sub-section header are only three specific examples of OSes that should be able to run the \emph{ratload} program. It should build and run on any POSIX-compliant OS.\\\\
-To build the ratload program, \texttt{cd} into the 'ratload' directory and build the program with \texttt{make}. There is no installation step. To use the \emph{ratload} binary simply copy it to some convenient location (such as a personal bin folder).
+\subsection{Integration on RAT CPU}
+\begin{enumerate}
+\item In the Xilinx ISE Environment, go to File \textgreater Add Copy of Source. Navigate to the directory ``nexys\_vhd\_files''. Select all files in the directory and click Add.
 
-\subsection{Program Installation on Windows}
+\begin{infobox}
+\textbf{{\warningsign} WARNING} This is a destructive action and will overwrite any files already in your project directory that have a name identical to the files being added e.g. any existing prog\_rom.vhd file will be overwritten by the \texttt{ratload} prog\_rom.vhd file.
+\end{infobox}
+
+\item In the architecture section of the rat\_cpu module, edit the componet declaration for the prog\_rom module. Add the following line:\\
+\centerline{\texttt{TRISTATE\_IN : in STD\_LOGIC\_VECTOR(7 downto 0)}}
+
+\item In the same file, edit the port map decaration for the prog\_rom module. Map the signal for the RAT CPU's tristate bus into to the prog\_rom module's tristate bus. The RAT CPU's ``tristate bus'' may be called the ``multibus'' in your CPU. That line will look similar to this:\\
+\centerline{\texttt{tristate\_in =\textgreater ~tristate\_bus\_sig(7 downto 0),}}
+
+\item In the entity declaration for the rat\_wrapper module, add the following two lines:\\
+\centerline{\texttt{rx : ~in STD\_LOGIC}}\\
+\centerline{\texttt{tx : out STD\_LOGIC}}
+
+\item In the architecture section of the rat\_wrapper module, add the following component declaration:
+\begin{verbatim}
+component uart is
+   Port ( txd      : out STD_LOGIC := '1';
+          rxd      : in  STD_LOGIC := '1';
+          clk, rst : in  STD_LOGIC;
+          int      : out STD_LOGIC;
+          data_out : out STD_LOGIC_VECTOR(7 downto 0);
+          data_in  : in  STD_LOGIC_VECTOR(7 downto 0));
+end component;
+\end{verbatim}
+
+\item You now need to add the port map for the UART module. Note that how you map this component may differ slightly from what is listed here because of naming conventions, architecture differences, etc. Add the following port map:
+\begin{verbatim}
+uart1 : uart port map(
+   txd => tx,
+   rxd => rx,
+   clk => clk,
+   rst => rst,
+   int => int_sig,
+   data_in => uart_out_sig,
+   data_out => uart_in_sig);
+\end{verbatim}
+The following is a line-by-line breakdown of the port map:
+\begin{itemize}
+\item \texttt{txd}: Transmit port for the UART, goes out of the rat\_wrapper and onto the physical UART on the Nexys board.
+\item \texttt{rxd}: Receive port for the UART. Similar to the transmit port.
+\item \texttt{clk}: Clock for the UART. Hook it up to yer clock. \showclock {9}{0}
+\item \texttt{rst}: Reset for the UART. Hook it up to the RAT's global reset
+\item \texttt{int}: The UART generates an interrupt when data has been received or sent. You need to create an interrupt signal, and \textbf{OR} that signal with any other interrupt you might be using e.g. a mouse or ethernet interrupt. The signal should then be sent to the rat\_cpu module.
+\item \texttt{data\_in}: Data going \underline{into} the UART, and \underline{out of} the rat\_cpu module. Create an internal signal called uart\_out\_sig (or some other name consistent with your own naming convention), and integrate with whatever system you are using to manage your outputs to the CPU. For example, if you are have separate input and out modules, then send the uart\_out\_sig into that module. If you manage your I/O in the rat\_wrapper module, then add an \texttt{if} or \texttt{elif} block for the UART.
+\item \texttt{data\_out}: Data going \underline{out of} the UART, and \underline{into} the rat\_cpu module. As above, add this to whatever system you have in place to manage inputs.
+\end{itemize}
+You will need \underline{PORT\_ID}s for the data\_in and data\_out signals in the UART. For data going out of the UART, and into the CPU, the port ID is 0x0F. For data going into the UART and out of the CPU, the port ID is 0x0E.
+\item In the rat\_wrapper.ucf (your title may differ slightly) file, add the following NETs if you have a Nexys 2 board:\\
+\centerline{\texttt{NET "tx" LOC = P9;}}\\
+\centerline{\texttt{NET "rx" LOC = U6;}}\\
+If you have a Nexys 3 board, then add these lines instead:\\
+\centerline{\texttt{NET "tx" LOC = XX;}}\\
+\centerline{\texttt{NET "rx" LOC = XX;}}
+
+\item Synthesize your newly integrated system.
+\begin{infobox}
+\textbf{{\warningsign} WARNING} You \textbf{WILL} receive the following warning about a latch:\\
+\centerline{\texttt{Found 1-bit latch for signal \textless TBE\textgreater. Latches may be \ldots}}\\
+This is a result of a flaw in the Digilent Romania provided UART module. It is safe to ignore. Any other latch, however, is not the result of this flaw and must be fixed!
+\end{infobox}
+
+\item Generate the bit file for the system, This finishes the integration steps.
+\end{enumerate}
+
+\subsection{Installation on GNU/Linux or OS X}
+The two operating systems (or families of operating systems) listed in the sub-section header are only three specific examples of OSes that should be able to run the \texttt{ratload} program. It should build and run on any POSIX-compliant OS.\\\\
+To build the ratload program, \texttt{cd} into the 'ratload' directory and build the program with \texttt{make}. Obviously you must have some sort of build environment set up for this to work. Mac users should have XCode tools installed or get gcc or clang via homebrew/macports/fink, etc. GNU/Linux users should install gcc via their package manager. If you're using a Ubuntu based distribution, such as Linux Mint, or Ubuntu itself, then the following will get everything you need:\\
+\centerline{\texttt{sudo apt-get install build-essential}}\\\\
+After building the binary, there is no installation step. Simply copy it to some convenient location (such as a personal bin folder).
+
+\subsection{Installation on Windows}
 Windows users must use the winRATLoad program\\\\
-The 'winRATLoad' folder contains the winRATLoad program. Copy the entire folder to somewhere useful for you. The winRATLoad.exe binary must remain in the folder to function properly. The binary is otherwise self contained and no other installation is necessary.
+Copy the ``winRATLoad'' folder to somewhere useful for you. The winRATLoad executeable must remain in the folder to function properly. The program is otherwise self contained and no other installation is necessary.
 
+
+\subsection{Serial Configuration}
+\subsubsection{Nexys 2}
+If you have a serial port on your computer, congratulations, you are using a computer from the 20th century! Your OS almost certainly already has installed drivers to use this port, so you don't need to do anything else.\\\\
+If you don't have a serial port, then you need to obtain a USB-to-serial adapter cable. If you're on Windows, the manufacturer of the cable probably provided drivers for you to install along with the cable itself, make sure you install them. If you're using GNU/Linux or OS X, google around to try to find the right driver.\\\\
+Once you think you've installed the driver then you simply need to verify that the OS can see it. In Windows 7, go to the Start menu and right click Computer, and then click manage. Look for the serial device in the device management section of the console. In GNU/Linux or OS X, list the contents of the \texttt{/dev} folder. In GNU/Linux your serial adapter will be called something similar to ``ttyS0''. In OS X, it will look like ``tty.usb0'', or similar.
+\subsubsection{Nexys 3}
+If you have a serial port on your computer, it doesn't matter, you can't use it! The Nexys 3 doesn't have a physical serial port, but instead emulates one with an FTDI chip. The USB cable you use to power and program the board also functions as a serial cable when it needs to. This means you need to install an FTDI driver. FTDI drivers for OS X and Windows 7 are included in the project folder. Install them and be glad you don't have to deal with USB-to-serial cable drivers!
 
 \section{Use}
-\section{Troubleshooting}
+Up until now, you've probably followed this pattern when developing your assembly language programs:
+\begin{enumerate}
+\item Run your assembly repeatedly in the ratsim program until it produces a prog\_rom.vhd file and seems to be relatively bug free.
+\item Add the new prog\_rom.vhd file to your project, replacing the old one.
+\item Resynthesize the entire project and reprogram the bit file onto your Nexys board.
+\item Repeat ad infinitum.
+\end{enumerate}
+The steps you have just followed to integrate the vhd files into your RAT CPU, and to install the ratload program onto your computer, will dramatically change this pattern. From now on you do not need to resynthesize your project when ratsim generates a new prog\_rom.vhd file, nor is it necessary to copy that new file into your project. In fact, \textbf{making any more changes to the prog\_rom.vhd file in your project directory will break \texttt{ratload}}.\\\\
+The following is a general overview of the new pattern you need to follow in order to use \texttt{ratload} properly:
 
+\begin{enumerate}
+\item Program your Nexys board with the generated bit file.
+
+\item Without disconnecting anything else, connect the Nexys 2 board to your computer via the serial cable. \textbf{If you have a Nexys 3 board, ignore this step.}
+
+\item Start either the winRATLoad or the ratload program, depending on your OS. Select the proper serial device and prog\_rom.vhd file to read.
+
+\item The program will then communicate with the Nexys board and send the prog\_rom.vhd to your RAT CPU via the serial connection. Once the program displays a success message, the serial cable (again, only if you have a Nexys 2) can be disconnected and the board used normally. You can treat the program running on the board like it was synthesized with the system using the previous pattern.
+
+\item To send a new prog\_rom.vhd file you must power cycle the Nexys board (If you programmed your bit file into volatile memory, then you'll need to reprogram it as well.) Then repeat this procedure.
+\end{enumerate}
+
+\subsection{Using winRATLoad (Windows)}
+
+\subsection{Using ratload (GNU/Linux or OS X)}
+ratload takes exactly two arguments: ``-d'' to specify a serial sevice and ``-f'' to specify a prog\_rom.vhd file to parse. You'll probably have to run it as root in order to access the serial device. The following is an exlpanation of all the errors messages ratload can produce:
+\begin{itemize}
+\item ``Opening prog\_rom failed'': Ratload could not open your prog\_rom.vhd file. Perhaps it couldn't find it, or it didn't have permission.
+\item ``Opening serial device failed'': Ratload could not open the serial device you specified. Perhaps you specified it incorrectly, or ratload does not have permission to access it.
+\item ``Invalid prog\_rom.vhd file, exiting.'': Ratload was able to find and open the file you specified, but it couldn't parse it. Ratload expects the prog\_rom.vhd to be structured in a very specific way. Because this file is auto-generated by the ratsim program, this is not a problem. Make sure you are specifying the exact prog\_rom.vhd file that ratsim generates. If you continue to receive this error, try generating the prog\_rom.vhd file again.
+\item ``Serial Configuration Failed'': Ratload was able to find and open the device you specified, but when it failed to configure it. It is possible but extremely unlikely that you have a serial device that does not support the proper settings. It is much more like that you specified a valid but incorrect device.
+\item ``Error communicating with Nexys2 board.'': Ratload was able to open and parse the file you specified, and was able to open and configure the serial device you specified, but it received no or incorrect data from the Nexys board. Program the ``reference\_rat\_wrapper.bit'' file onto your Nexys board and try to send data to it wih ratload. If that works, then you have misconfigured your RAT CPU, and you need to return to the integration section and make sure you followed those steps correctly. 
+\item ``Too many [few] arguments.'': You specified the arguments to ratload incorrectly.
+\item ``Option not supported. Only -f and -d supported.'': You specified the arguments to ratload incorrectly.
+\end{itemize}
 \end{document}
-
-
