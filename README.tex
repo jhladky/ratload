@@ -1,11 +1,14 @@
 \documentclass[notitlepage]{article}
 \usepackage{courier}
 \usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
 \usepackage{fullpage}
 \usepackage{hhline}
 \usepackage{tabular x}
 \usepackage{mdframed}
 \usepackage{titlesec}
+\usepackage{hyperref}
 \usepackage[clock]{ifsym}
 \newcommand{\sectionbreak}{\clearpage}
 \newcommand{\warningsign}{\fontencoding{U}\fontfamily{futs}\selectfont\char 66\relax}
@@ -35,7 +38,7 @@ innerleftmargin=5pt,innerrightmargin=5pt]{infobox}
 \section{Introduction}
 The ratload system consists of two separate components: a computer program and a set of VHDL modules. This guide will detail how to install, configure and run both. It is necesssary to follow the instructions in the \emph{Integration} section, and then either of the \emph{Installation} sections, depending on the target operating system.
 \subsection{Requirements}
-If you have a Nexys 2 board --- You will need a serial cable. If your computer does not have a serial port, then you will need a USB-to-serial adapter.\\
+If you have a Nexys 2 board --- You will need a serial cable. If your computer does not have a serial port, then you will need a USB-to-serial adapter. Here's an example: \url{http://amzn.com/B0007T27H8}. Any adapter will do as long as you have the right drivers for it.\\
 If you have a Nexys 3 board --- No serial cable is required, as an onboard FTDI chip provides serial emulation.\\\\
 Do not integrate ratload into your RAT CPU until all the major components of the CPU are in place, and you have a good understanding of how they fit together. Understanding how the RAT architecture handles I/O and interrupts will make integration much easier.
 \subsection{Bug Reporting}
@@ -45,13 +48,16 @@ All programs have bugs. \texttt{ratload} is beta software and is no exception. I
 \end{infobox}
 
 \subsection{Contact}
-If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author.
+If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author, at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code -- including the \LaTeX ~source for this guide -- is available at \url{http://www.github.com/jhladky/ratload}.
+
+
+% We need to fix the way underscores look!!!!!!
 
 
 \section{Installation}
 \subsection{Integration on RAT CPU}
 \begin{enumerate}
-\item In the Xilinx ISE Environment, go to File \textgreater Add Copy of Source. Navigate to the directory ``nexys\_vhd\_files''. Select all files in the directory and click Add.
+\item In the Xilinx ISE Environment, go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the directory ``nexys\textunderscore vhd\_files''. Select all files in the directory and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
 
 \begin{infobox}
 \textbf{{\warningsign} WARNING} This is a destructive action and will overwrite any files already in your project directory that have a name identical to the files being added e.g. any existing prog\_rom.vhd file will be overwritten by the \texttt{ratload} prog\_rom.vhd file.
@@ -60,7 +66,7 @@ If you have any questions about the project itself, or suggestions for improveme
 \item In the architecture section of the rat\_cpu module, edit the componet declaration for the prog\_rom module. Add the following line:\\
 \centerline{\texttt{TRISTATE\_IN : in STD\_LOGIC\_VECTOR(7 downto 0)}}
 
-\item In the same file, edit the port map decaration for the prog\_rom module. Map the signal for the RAT CPU's tristate bus into to the prog\_rom module's tristate bus. The RAT CPU's ``tristate bus'' may be called the ``multibus'' in your CPU. That line will look similar to this:\\
+\item In the same file, edit the port map decaration for the prog\_rom module. Map the signal for the RAT CPU's tristate bus into to the prog\_rom module's tristate bus. The RAT CPU's ``tristate bus'' may be called the ``multibus'' in your CPU. (Regardless of its name, this is the bux that connects the ALU, the program counter, the scratch pad, and others.) That line will look similar to this:\\
 \centerline{\texttt{tristate\_in =\textgreater ~tristate\_bus\_sig(7 downto 0),}}
 
 \item In the entity declaration for the rat\_wrapper module, add the following two lines:\\
@@ -97,7 +103,7 @@ The following is a line-by-line breakdown of the port map:
 \item \texttt{clk}: Clock for the UART. Hook it up to yer clock. \showclock {9}{0}
 \item \texttt{rst}: Reset for the UART. Hook it up to the RAT's global reset
 \item \texttt{int}: The UART generates an interrupt when data has been received or sent. You need to create an interrupt signal, and \textbf{OR} that signal with any other interrupt you might be using e.g. a mouse or ethernet interrupt. The signal should then be sent to the rat\_cpu module.
-\item \texttt{data\_in}: Data going \underline{into} the UART, and \underline{out of} the rat\_cpu module. Create an internal signal called uart\_out\_sig (or some other name consistent with your own naming convention), and integrate with whatever system you are using to manage your outputs to the CPU. For example, if you are have separate input and out modules, then send the uart\_out\_sig into that module. If you manage your I/O in the rat\_wrapper module, then add an \texttt{if} or \texttt{elif} block for the UART.
+\item \texttt{data\_in}: Data going \underline{into} the UART, and \underline{out of} the rat\_cpu module. Create an internal signal called uart\_out\_sig (or some other name consistent with your own naming convention), and integrate with whatever system you are using to manage your outputs to the CPU. For example, if you are have separate input and out modules, then send the uart\_out\_sig into that module. If you manage your I/O in the rat\_wrapper module, then add an \texttt{if} or \texttt{elsif} block for the UART.
 \item \texttt{data\_out}: Data going \underline{out of} the UART, and \underline{into} the rat\_cpu module. As above, add this to whatever system you have in place to manage inputs.
 \end{itemize}
 You will need \underline{PORT\_ID}s for the data\_in and data\_out signals in the UART. For data going out of the UART, and into the CPU, the port ID is 0x0F. For data going into the UART and out of the CPU, the port ID is 0x0E.
