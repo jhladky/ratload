@@ -6,12 +6,16 @@ if [ -e $PRJ_DIR ]; then
     rm -rf $PRJ_DIR
 fi
 
-if [ ! -e "README.pdf" ]; then
+if [ ! -e "doc/README.pdf" ]; then
+    cd doc
     ./latex.sh
+    cd ..
 fi
 
-if [ ! -e "ratload" ]; then
+if [ ! -e "nix/ratload" ]; then
+    cd nix
     make clean && make
+    cd ..
 fi
 
 mkdir $PRJ_DIR
@@ -30,6 +34,8 @@ cp RAT_CPU/prog_ram.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/real_prog_rom.vhd $PRJ_DIR/vhdl/
 cp SERIAL_TEST/prog_rom.vhd $PRJ_DIR/vhdl/serial_test.vhd
 
-cp README.pdf $PRJ_DIR
+cp doc/README.pdf $PRJ_DIR
 
-cp ratload $PRJ_DIR/bin/ratload_nix
+cp nix/ratload $PRJ_DIR/bin/ratload_nix
+
+cp win/winRATLoad.exe $PRJ_DIR/bin/ratload_win.exe

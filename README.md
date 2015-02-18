@@ -1,4 +1,4 @@
 ratload
 =======
 
-Ratload documentation is available in the README.pdf file.
+Ratload documentation is available in the doc/README.pdf file.
