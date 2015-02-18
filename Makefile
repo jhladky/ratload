@@ -10,4 +10,4 @@ ratload: ratload.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm ratload *.o
+	rm -f ratload *.o

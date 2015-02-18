@@ -11,7 +11,9 @@
 \usepackage{hyperref}
 \usepackage[clock]{ifsym}
 \newcommand{\sectionbreak}{\clearpage}
-\newcommand{\warningsign}{\fontencoding{U}\fontfamily{futs}\selectfont\char 66\relax}
+\newcommand{\infosign}{\fontencoding{U}\fontfamily{futs}\huge\selectfont\char 116\relax}
+\newcommand{\warningsign}{\fontencoding{U}\fontfamily{futs}\Large\selectfont\char 66\relax}
+\newcommand{\dangersign}{\fontencoding{U}\fontfamily{futs}\huge\selectfont\char 76\relax}
 \newmdenv[linecolor=black,skipabove=\topsep,skipbelow=\topsep,
 leftmargin=0pt,rightmargin=0pt,
 innerleftmargin=5pt,innerrightmargin=5pt]{infobox}
@@ -37,10 +39,34 @@ innerleftmargin=5pt,innerrightmargin=5pt]{infobox}
 
 \section{Introduction}
 The ratload system consists of two separate components: a computer program and a set of VHDL modules. This guide will detail how to install, configure and run both. It is necesssary to follow the instructions in the \emph{Integration} section, and then either of the \emph{Installation} sections, depending on the target operating system.
+
 \subsection{Requirements}
 If you have a Nexys 2 board --- You will need a serial cable. If your computer does not have a serial port, then you will need a USB-to-serial adapter. Here's an example: \url{http://amzn.com/B0007T27H8}. Any adapter will do as long as you have the right drivers for it.\\
 If you have a Nexys 3 board --- No serial cable is required, as an onboard FTDI chip provides serial emulation.\\\\
 Do not integrate ratload into your RAT CPU until all the major components of the CPU are in place, and you have a good understanding of how they fit together. Understanding how the RAT architecture handles I/O and interrupts will make integration much easier.
+
+\subsection{Project Manifest}
+The following is a listing of each file in the \texttt{ratload} system and a brief description of the file's contents and purpose.
+\begin{itemize}
+\item \texttt{README.pdf} This guide.
+\item \texttt{vhdl/RS232RefComp.vhd} UART VHDL module. Required for communication with host computer
+\item \texttt{vhdl/ascii\_to\_int.vhd} VHDL module to convert ASCII-encoded hexidecimal numbers into binary.
+\item \texttt{vhdl/prog\_rom.vhd} Replacement prog\_rom module for the RAT CPU.
+\item \texttt{vhdl/interceptor.vhd} VHDL module related to the internal operation of the prog\_rom.
+\item \texttt{vhdl/prog\_ram.vhd} VHDL module related to the internal operation of the prog\_rom.
+\item \texttt{vhdl/real\_prog\_rom.vhd} VHDL module related to the internal operation of the prog\_rom.
+\item \texttt{vhdl/serial\_test.vhd} A special prog\_rom module used to test the functionality of the UART.
+\item \texttt{asm/serial\_test.asm} Assembly source of the serial\_test VHDL module.
+\item \texttt{asm/ratload.asm} Assembly source for the \texttt{ratload} system.
+\item \texttt{bin/ratload\_win/} Windows graphical version of the ratload program. The files in this directory are all in support of the Windows ratload program and will not be described individually.
+\item \texttt{bin/ratload\_win\_cli.exe} Windows command line version of the ratload program.
+\item \texttt{bin/ratload\_nix} Linux and OS X command line version of the ratload program. Please note there is no graphical ratload program for Linux and OS X.
+\end{itemize}
+
+\begin{infobox}
+  {\infosign} The binaries for Linux and OS X may not work for you! (Windows users can disregard this message) Your best bet if you are using a one of these OSes is to compile ratload from source. Instructions for doing so are available at \url{http://www.github.com/jhladky/ratload}.
+\end{infobox}
+
 \subsection{Bug Reporting}
 All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in either the ratload or the winRATLoad program, please contact the author. It is also possible (albeit significantly less likely) that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.
 \begin{infobox}
@@ -51,16 +77,13 @@ All programs have bugs. \texttt{ratload} is beta software and is no exception. I
 If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author, at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code -- including the \LaTeX ~source for this guide -- is available at \url{http://www.github.com/jhladky/ratload}.
 
 
-% We need to fix the way underscores look!!!!!!
-
-
 \section{Installation}
 \subsection{Integration on RAT CPU}
 \begin{enumerate}
 \item In the Xilinx ISE Environment, go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the directory ``nexys\textunderscore vhd\_files''. Select all files in the directory and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
 
 \begin{infobox}
-\textbf{{\warningsign} WARNING} This is a destructive action and will overwrite any files already in your project directory that have a name identical to the files being added e.g. any existing prog\_rom.vhd file will be overwritten by the \texttt{ratload} prog\_rom.vhd file.
+  {\warningsign} This is a destructive action and will overwrite any files already in your project directory that have a name identical to the files being added e.g. any existing prog\_rom.vhd file will be overwritten by the \texttt{ratload} prog\_rom.vhd file.
 \end{infobox}
 
 \item In the architecture section of the rat\_cpu module, edit the componet declaration for the prog\_rom module. Add the following line:\\
