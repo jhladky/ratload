@@ -7,6 +7,7 @@
 \usepackage{hhline}
 \usepackage{tabular x}
 \usepackage{mdframed}
+\usepackage{enumerate}
 \usepackage{titlesec}
 \usepackage{hyperref}
 \usepackage[clock]{ifsym}
@@ -49,7 +50,7 @@ Do not integrate ratload into your RAT CPU until all the major components of the
 The following is a listing of each file in the \texttt{ratload} system and a brief description of the file's contents and purpose.
 \begin{itemize}
 \item \texttt{README.pdf} This guide.
-\item \texttt{vhdl/RS232RefComp.vhd} UART VHDL module. Required for communication with host computer
+\item \texttt{vhdl/RS232RefComp.vhd} UART VHDL module. Required for communication with host computer.
 \item \texttt{vhdl/ascii\_to\_int.vhd} VHDL module to convert ASCII-encoded hexidecimal numbers into binary.
 \item \texttt{vhdl/prog\_rom.vhd} Replacement prog\_rom module for the RAT CPU.
 \item \texttt{vhdl/interceptor.vhd} VHDL module related to the internal operation of the prog\_rom.
@@ -68,10 +69,8 @@ The following is a listing of each file in the \texttt{ratload} system and a bri
 \end{infobox}
 
 \subsection{Bug Reporting}
-All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in either the ratload or the winRATLoad program, please contact the author. It is also possible (albeit significantly less likely) that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.
-\begin{infobox}
-\textbf{PLEASE KEEP IN MIND --- } Since you are writing the mechanics of the CPU itself, it is possible for very odd bugs to happen, and for those bugs to interact with \texttt{ratload} in bizarre ways. Although it may seem like there is a problem with \texttt{ratload}, it has been thoroughly tested and is almost certainly free of any major bugs.
-\end{infobox}
+All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in either the ratload or the winRATLoad program, please contact the author. It is also possible (albeit significantly less likely) that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.\\\\
+Since you are writing the mechanics of the CPU itself, it is possible for very odd bugs to happen, and for those bugs to interact with \texttt{ratload} in bizarre ways. Although it may seem like there is a problem with \texttt{ratload}, it has been thoroughly tested and is free of any major bugs.
 
 \subsection{Contact}
 If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author, at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code -- including the \LaTeX ~source for this guide -- is available at \url{http://www.github.com/jhladky/ratload}.
@@ -79,8 +78,158 @@ If you have any questions about the project itself, or suggestions for improveme
 
 \section{Installation}
 \subsection{Integration on RAT CPU}
+Integration on the RAT CPU is split into two parts to facilitate troubleshooting. Follow the instructions in each section, and then follow instructions to verify that the actions performed in that section were successful.
+
+\subsubsection{Integration of UART}
+\texttt{Ratload} requries a UART to communicate with a host computer. The UART module is provided by Digilent and is used unmodified here.
+\begin{infobox}
+  {\infosign} UART stands for ``Universal Asynchronous Receiver-Transmitter'', which you may recognize as another name for a serial port. The UART can be used outside of the \texttt{ratload} project as well. Consider using a UART in your own final project!
+\end{infobox}
+
+\begin {enumerate}
+\item In the Xilinx ISE Environment, go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the \texttt{ratload} project directory (where this README is located), and then to the ``vhd'' folder. Select the ``RS232RefComp.vhd'' and ``ascii\_to\_int.vhd'' files and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
+
+\item In the rat\_wrapper.ucf (your title may differ slightly) file, add the following NETs if you have a Nexys 2 board:\\
+\centerline{\texttt{NET "tx" LOC = P9;}}\\
+\centerline{\texttt{NET "rx" LOC = U6;}}\\
+If you have a Nexys 3 board, then add these lines instead:\\
+\centerline{\texttt{NET "tx" LOC = XX;}}\\
+\centerline{\texttt{NET "rx" LOC = XX;}}
+
+\item In the architecture section of the top-level rat\_wrapper module, add the following two lines to the entity declaration:\\
+\centerline{\texttt{RXD : ~in STD\_LOGIC;}}\\
+\centerline{\texttt{TXD : out STD\_LOGIC;}}
+
+\item In the same file, add the following component declarations:
+\begin{verbatim}
+component RS232RefComp
+   Port(
+      RXD      : in     STD_LOGIC;
+      RST      : in     STD_LOGIC := '0';
+      CLK      : in     STD_LOGIC;
+      DBIN     : in     STD_LOGIC_VECTOR(7 downto 0);
+      RD, WR   : in     STD_LOGIC;
+      RDA      : inout  STD_LOGIC;
+      TBE      : inout  STD_LOGIC := '1';
+      TXD      : out    STD_LOGIC := '1';
+      DBOUT    : out    STD_LOGIC_VECTOR(7 downto 0);
+      PE, FE   : out    STD_LOGIC;
+      OE       : out    STD_LOGIC);
+end component;
+
+component ascii_to_int
+   Port(
+      ascii_in : in     STD_LOGIC_VECTOR(7 downto 0);
+      int_out  : out    STD_LOGIC_VECTOR(7 downto 0));
+end component;
+\end{verbatim}
+
+\item In the same section, add the following signals:
+\begin{verbatim}
+signal s_d_avail      : STD_LOGIC;
+signal s_d_sent       : STD_LOGIC;
+signal s_d_strb       : STD_LOGIC;
+signal s_d_conf       : STD_LOGIC;
+signal s_db_from_rat  : STD_LOGIC_VECTOR(7 downto 0);
+signal s_db_to_conv   : STD_LOGIC_VECTOR(7 downto 0);
+signal s_db_to_rat    : STD_LOGIC_VECTOR(7 downto 0);
+\end{verbatim}
+
+\item Add the following port map for the ascii\_to\_int module:
+\begin{verbatim}
+CONV: ASCII_TO_INT port map(
+   ASCII_IN => S_DB_TO_CONV,
+   INT_OUT  => S_DB_TO_RAT);
+\end{verbatim}
+Data sent over the UART will be ASCII encoded, but we want it to be in hex, so we convert it as soon as it gets out of the UART module. The \texttt{S\_DB\_TO\_CONV} signal receives an ASCII-encoded byte from the UART, and the \texttt{S\_DB\_TO\_RAT} signal has the output in binary. You will need to add the \texttt{S\_DB\_TO\_RAT} signal to whatever method you use to get intputs into the RAT. For example, if you have a  separate input module, then send the signal into that module. If you manage your I/O in the rat\_wrapper module, then add an \texttt{elsif} block. The \texttt{PORT\_ID} for \textbf{input} from the UART is \textbf{0x0F}.
+
+\item Add the following port map for the RS232RefComp module:
+\begin{verbatim}
+UART: RS232REFCOMP port map(
+   RXD     => RXD,
+   RST     => RST,
+   CLK     => CLK,
+   DBIN    => S_DB_FROM_RAT,
+   RD      => S_D_CONF,
+   WR      => S_D_STRB,
+   RDA     => S_D_AVAIL
+   TBE     => S_D_SENT,
+   TXD     => TXD,
+   DBOUT   => S_DB_TO_CONV,
+   FE      => open,
+   PE      => open,
+   OE      => open);
+\end{verbatim}
+The following is a line-by-line breakdown of the port map:
+\begin{itemize}
+\item \texttt{RXT}: Receive port for the UART. Serial data goes into the physical UART on the Nexys board and then into this module.
+\item \texttt{RST}: Reset for the UART. Hook it up to the RAT's global reset. \textbf{The name of your reset pin may be different!}
+\item \texttt{CLK}: Clock for the UART. Hook it up to yer clock. \showclock {9}{0}
+\item \texttt{S\_DB\_FROM\_RAT}: Send bus.
+\item \texttt{S\_D\_CONF}: Read strobe. We take it high to confirm that data has been received.
+\item \texttt{S\_D\_STRB}: Write strobe. We take it high to indicate we have data on \texttt{S\_DB\_FROM\_RAT} to send.
+\item \texttt{S\_D\_AVAIL}: Indicates data is available to be read.
+\item \texttt{S\_D\_SEND}: Indicates data has been successfully sent.
+\item \texttt{TXD}: Transmit port for the UART, similar to the receive port.
+\item \texttt{DBOUT}: Receive bus
+\item \texttt{FE, PE, OE}: Error pins. ``Frame Error'', ``Parity Error'', and ``Output Error'', respectively. We're not concerned with checking for data errors so we leave these pins open.
+\end{itemize}
+
+\item Modify your outputs process (or module) to send data to the UART.
+\begin{infobox}
+  {\warningsign} \textbf{THIS IS A CRITICAL STEP!} Many I/O devices, such as the UART, require more than just a simple data bus for proper operation. In the previous step you hooked-up several signals to the UART modue, now you have to hook-up the other end! For convenience sake we will have the output process control these signals, and to make it really easy, an example output process is reproduced here.
+\end{infobox}
+If you use an module for your outputs, then modify the following example to fit into your module. The constant \texttt{UART\_OUT\_ID} is equal to 0x0E. \textbf{You will almost certainly need to adapt some of the signal names to fit your conventions. Make sure to do so without changing the UART signals!}
+\begin{verbatim}
+outputs: process(CLK) begin
+   if (rising_edge(CLK)) then
+      s_d_strb <= '0';
+      s_d_conf <= '0';
+      if (S_IO_OE = '1') then
+         if (s_port_id = LEDS_ID) then
+            LEDS <= s_output_port;
+         elsif (s_port_id = UART_OUT_ID) then
+            s_db_from_rat <= s_output_port;
+            s_d_strb <= '1';
+            s_d_conf <= '1';
+         end if;
+      end if;
+   end if;
+end process outputs;
+\end{verbatim}
+
+\item Make sure that you can successfully synthesize your RAT\_wrapper with the UART integrated. This is the last step in integrating the UART.
+\begin{infobox}
+  \textbf{{\warningsign}} You \textbf{WILL} receive the following warning about a latch:\\
+    \centerline{\texttt{Found 1-bit latch for signal \textless TBE\textgreater. Latches may be \ldots}}\\
+    This is a result of a flaw in the Digilent Romania provided UART module. It is safe to ignore. Any other latch, however, is not the result of this flaw and must be fixed!
+\end{infobox}
+\end{enumerate}
+
+\subsubsection{UART Verification}
+This section covers a quick test of the UART module you just integrated into your RAT CPU. 
+\begin{infobox}
+  {\warningsign}\textbf{~IF THE TEST IN THIS SECTION IS NOT 100\% SUCCESSFUL DO NOT CONTINUE\ldots GO BACK AND DOUBLE CHECK THAT YOU INTEGRATED THE UART PROPERLY\ldots \texttt{RATLOAD} WILL NOT WORK UNLESS YOUR UART BEHAVES EXACTLY AS EXPECTED}
+\end{infobox}
+
 \begin{enumerate}
-\item In the Xilinx ISE Environment, go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the directory ``nexys\textunderscore vhd\_files''. Select all files in the directory and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
+\item Replace your current prog\_rom module with the prog\_rom module in the ``serial\_test.vhd'' file, in the ``vhdl'' folder. Then program your Nexys board with the new bit file.
+\item Hook up the serial cable to the Nexys and the host computer. If you are using Windows, follow the next step. If you are using Linux or OS X, follow the step after that.
+  \begin{enumerate}[a.]
+  \item \textbf{WINDOWS ---} Run the ratload program in the ``src/ratload\_win/'' folder. Select the proper serial device from the dropdown menu. Then go to \textbf{File \textgreater Run Serial Text}. The program will then attempt to communicate with the Nexys board via the serial cable. If the results window says ``PASS'', then move on to the next section. If it says anything else, then go back and make sure you followed the integration instructions properly.
+
+  \item \textbf{LINUX AND OS X ---} Make sure you have build the command-line ratload program correctly or can run the one provided (``src/ratload\_nix''). Make sure you can identify which serial device you want to use, it will probably be something like ``/dev/ttyS0'' (more information on using the cli ratload is available in the ``Use'' section). Then run the ratload in test mode like so:
+\begin{verbatim}
+ratload -d /dev/<serial device> --test
+\end{verbatim}
+If the program prints out ``PASS'', then move on to the next section. If it says anything else, then go back and make sure you followed the integration instructions properly.
+  \end{enumerate}
+\end{enumerate}
+
+\subsubsection{Integration of new prog\_rom module}
+
+\begin{enumerate}
+\item Go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the \texttt{ratload} directory again and then to the same ``vhdl'' folder. Select the ``prog\_rom.vhd'', ``prog\_ram.vhd'', ``real\_prog\_rom.vhd'', and ``interceptor.vhd'' files and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
 
 \begin{infobox}
   {\warningsign} This is a destructive action and will overwrite any files already in your project directory that have a name identical to the files being added e.g. any existing prog\_rom.vhd file will be overwritten by the \texttt{ratload} prog\_rom.vhd file.
@@ -89,62 +238,10 @@ If you have any questions about the project itself, or suggestions for improveme
 \item In the architecture section of the rat\_cpu module, edit the componet declaration for the prog\_rom module. Add the following line:\\
 \centerline{\texttt{TRISTATE\_IN : in STD\_LOGIC\_VECTOR(7 downto 0)}}
 
-\item In the same file, edit the port map decaration for the prog\_rom module. Map the signal for the RAT CPU's tristate bus into to the prog\_rom module's tristate bus. The RAT CPU's ``tristate bus'' may be called the ``multibus'' in your CPU. (Regardless of its name, this is the bux that connects the ALU, the program counter, the scratch pad, and others.) That line will look similar to this:\\
-\centerline{\texttt{tristate\_in =\textgreater ~tristate\_bus\_sig(7 downto 0),}}
+\item In the same file, edit the port map decaration for the prog\_rom module. Map the signal for the RAT CPU's tristate bus into to the prog\_rom module's tristate bus. The RAT CPU's ``tristate\_bus'' may be called the ``MULTI\_BUS'' in your CPU. (Regardless of its name, this is the bux that connects the ALU, the program counter, the scratch pad, and others.) That line will look similar to this:\\
+  \centerline{\texttt{tristate\_in =\textgreater ~tristate\_bus\_sig(7 downto 0),}}
 
-\item In the entity declaration for the rat\_wrapper module, add the following two lines:\\
-\centerline{\texttt{rx : ~in STD\_LOGIC}}\\
-\centerline{\texttt{tx : out STD\_LOGIC}}
-
-\item In the architecture section of the rat\_wrapper module, add the following component declaration:
-\begin{verbatim}
-component uart is
-   Port ( txd      : out STD_LOGIC := '1';
-          rxd      : in  STD_LOGIC := '1';
-          clk, rst : in  STD_LOGIC;
-          int      : out STD_LOGIC;
-          data_out : out STD_LOGIC_VECTOR(7 downto 0);
-          data_in  : in  STD_LOGIC_VECTOR(7 downto 0));
-end component;
-\end{verbatim}
-
-\item You now need to add the port map for the UART module. Note that how you map this component may differ slightly from what is listed here because of naming conventions, architecture differences, etc. Add the following port map:
-\begin{verbatim}
-uart1 : uart port map(
-   txd => tx,
-   rxd => rx,
-   clk => clk,
-   rst => rst,
-   int => int_sig,
-   data_in => uart_out_sig,
-   data_out => uart_in_sig);
-\end{verbatim}
-The following is a line-by-line breakdown of the port map:
-\begin{itemize}
-\item \texttt{txd}: Transmit port for the UART, goes out of the rat\_wrapper and onto the physical UART on the Nexys board.
-\item \texttt{rxd}: Receive port for the UART. Similar to the transmit port.
-\item \texttt{clk}: Clock for the UART. Hook it up to yer clock. \showclock {9}{0}
-\item \texttt{rst}: Reset for the UART. Hook it up to the RAT's global reset
-\item \texttt{int}: The UART generates an interrupt when data has been received or sent. You need to create an interrupt signal, and \textbf{OR} that signal with any other interrupt you might be using e.g. a mouse or ethernet interrupt. The signal should then be sent to the rat\_cpu module.
-\item \texttt{data\_in}: Data going \underline{into} the UART, and \underline{out of} the rat\_cpu module. Create an internal signal called uart\_out\_sig (or some other name consistent with your own naming convention), and integrate with whatever system you are using to manage your outputs to the CPU. For example, if you are have separate input and out modules, then send the uart\_out\_sig into that module. If you manage your I/O in the rat\_wrapper module, then add an \texttt{if} or \texttt{elsif} block for the UART.
-\item \texttt{data\_out}: Data going \underline{out of} the UART, and \underline{into} the rat\_cpu module. As above, add this to whatever system you have in place to manage inputs.
-\end{itemize}
-You will need \underline{PORT\_ID}s for the data\_in and data\_out signals in the UART. For data going out of the UART, and into the CPU, the port ID is 0x0F. For data going into the UART and out of the CPU, the port ID is 0x0E.
-\item In the rat\_wrapper.ucf (your title may differ slightly) file, add the following NETs if you have a Nexys 2 board:\\
-\centerline{\texttt{NET "tx" LOC = P9;}}\\
-\centerline{\texttt{NET "rx" LOC = U6;}}\\
-If you have a Nexys 3 board, then add these lines instead:\\
-\centerline{\texttt{NET "tx" LOC = XX;}}\\
-\centerline{\texttt{NET "rx" LOC = XX;}}
-
-\item Synthesize your newly integrated system.
-\begin{infobox}
-\textbf{{\warningsign} WARNING} You \textbf{WILL} receive the following warning about a latch:\\
-\centerline{\texttt{Found 1-bit latch for signal \textless TBE\textgreater. Latches may be \ldots}}\\
-This is a result of a flaw in the Digilent Romania provided UART module. It is safe to ignore. Any other latch, however, is not the result of this flaw and must be fixed!
-\end{infobox}
-
-\item Generate the bit file for the system, This finishes the integration steps.
+\item Synthesize and generate a bit file for your newly integrated system. That's it! \texttt{Ratload} should work on your CPU now. The next section covers how to use the ratload program.
 \end{enumerate}
 
 \subsection{Installation on GNU/Linux or OS X}
@@ -154,8 +251,8 @@ To build the ratload program, \texttt{cd} into the 'ratload' directory and build
 After building the binary, there is no installation step. Simply copy it to some convenient location (such as a personal bin folder).
 
 \subsection{Installation on Windows}
-Windows users must use the winRATLoad program\\\\
-Copy the ``winRATLoad'' folder to somewhere useful for you. The winRATLoad executeable must remain in the folder to function properly. The program is otherwise self contained and no other installation is necessary.
+There is no installation step on Windows.\\\\
+Copy the ``ratload_win'' folder to somewhere useful for you. The ratload executeable must remain in the folder to function properly. The program is otherwise self contained and no other installation is necessary.
 
 
 \subsection{Serial Configuration}
