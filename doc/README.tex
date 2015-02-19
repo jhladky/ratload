@@ -60,8 +60,6 @@ The following is a listing of each file in the \texttt{ratload} system and a bri
 \item \texttt{vhdl/prog\_ram.vhd} VHDL module related to the internal operation of the prog\_rom.
 \item \texttt{vhdl/real\_prog\_rom.vhd} VHDL module related to the internal operation of the prog\_rom.
 \item \texttt{vhdl/serial\_test.vhd} A special prog\_rom module used to test the functionality of the UART.
-\item \texttt{asm/serial\_test.asm} Assembly source of the serial\_test VHDL module.
-\item \texttt{asm/ratload.asm} Assembly source for the \texttt{ratload} system.
 \item \texttt{bin/ratload\_win/} Windows graphical version of the ratload program. The files in this directory are all in support of the Windows ratload program and will not be described individually.
 \item \texttt{bin/ratload\_win.exe} Windows command-line version of the ratload program.
 \item \texttt{bin/ratload\_nix} Linux command-line version of the ratload program. 
@@ -74,7 +72,7 @@ Please note there is no graphical ratload program for Linux and OS X.
 \end{infobox}
 
 \subsection{Bug Reporting}
-All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in either the ratload or the winRATLoad program, please contact the author. It is also possible (albeit significantly less likely) that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.\\\\
+All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in the ratload program, please contact the author. It is also possible (albeit significantly less likely) that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.\\\\
 Since you are writing the mechanics of the CPU itself, it is possible for very odd bugs to happen, and for those bugs to interact with \texttt{ratload} in bizarre ways\ldots However \texttt{ratload} has been thoroughly tested and is free of any major bugs.
 
 \subsection{Contact}
@@ -215,43 +213,46 @@ end process outputs;
 \end{enumerate}
 
 \subsection{Verification}
-This section covers a quick test of the UART module you just integrated into your RAT CPU. If the test in this section is not 100\% successful \textbf{DO NOT CONTINUE}. Go back and double check that you have integrated the UART properly. If the UART continues not to work, go to the ``Troubleshooting'' section. \textbf{\texttt{RATLOAD} WILL NOT WORK UNLESS YOUR UART BEHAVES EXACTLY AS EXPECTED!}
+This section covers a quick test of the UART module you just integrated into your RAT CPU. If the test in this section is not 100\% successful \textbf{DO NOT CONTINUE}. Go back and double check that you have integrated the UART properly. If the UART continues not to work, see Section~\ref{sec:troubleshooting}. \texttt{Ratload} \textbf{WILL NOT WORK} unless your UART bahaves exactly as expected!
 
 \begin{enumerate}
 \item Replace your current prog\_rom module with the prog\_rom module in the ``serial\_test.vhd'' file, in the ``vhdl'' folder. Then program your Nexys board with the new bit file.
-\item Hook up the serial cable to the Nexys and the host computer. This step involves running the ratload program. For more information about installing and running the ratload program see the ``Installation'' and ``Use'' sections.
-  \begin{enumerate}[a.]
-  \item \textbf{Graphical version (Windows only) ---} Select the proper serial device from the dropdown menu. Then go to \textbf{File \textgreater Run Serial Test}. The program will then attempt to communicate with the Nexys board via the serial cable. If the results window says ``PASS'', then move on to the next section. If it says anything else, then go back and make sure you followed the integration instructions properly.
+\item Hook up the serial cable to the Nexys and the host computer. If the test indicates ``PASS'', then you can skip Section~\ref{sec:troubleshooting}. If it says anything else, go back and make sure you followed the integration instructions properly.
 
-  \item \textbf{Command-line version ---} Run ratload in test mode like so:
-\begin{verbatim}
-ratload -d /dev/<serial device> --test
-\end{verbatim}
-If the program prints out ``PASS'', then you can skip the ``Troubleshooting'' section. If it says anything else, then go back and make sure you followed the integration instructions properly.
+\begin{infobox}
+  {\infosign} This step involves running the ratload program. For more information about installing and running the ratload program see Sections 4 and 5. % FIX THE REF HERE...
+\end{infobox}
+
+  \begin{enumerate}[a.]
+  \item \textbf{Graphical version (Windows only) ---} Select the proper serial device from the dropdown menu. Then go to \textbf{File \textgreater Run Serial Test}. The program will then attempt to communicate with the Nexys board via the serial cable.
+
+  \item \textbf{Command-line version ---} Run ratload in test mode like so: \texttt{ratload -d /dev/<serial device> -{}-test}
   \end{enumerate}
 \end{enumerate}
 
 \subsection{Troubleshooting}
+\label{sec:troubleshooting}
 The easiest way to troubleshoot the UART module is to break out an actual serial console and see what it's sending to the computer. So that's what we're going to do. You will need to know what your serial device is called on your computer. To do so see Section~\ref{sec:serial_id}.
 \subsubsection{Obtaining a serial console}
 \begin{itemize}
-\item \textbf{Windows users --- } A good serial console for Windows is putty. Download putty from here:\\
-  \centerline{\url{http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html}}
-\item \textbf{Linux users --- } Install minicom with your package manager. If you are using a debian-based disto that looks like: \texttt{sudo apt-get install minicom}.
-\item \textbf{OS X users --- } Install minicom with homebrew, macports, whatever. That will look like: \texttt{brew install minicom}.
+\item \textbf{Windows users --- } A good serial console for windows is putty. Download it here: \url{http://bit.ly/1jsQjnt}
+\item \textbf{Linux and OS X users --- } Install minicom with your package manager. If you are using a debian-based disto that looks like: \texttt{sudo apt-get install minicom}, or in OS X: \texttt{brew install minicom}.
 \end{itemize}
 
-\subsubsection{Configuring the proper serial console settings}
-\begin{itemize}
-\item \textbf{Windows users --- }
-  Run putty. From the \textbf{Connection Type} options, select the \textbf{Serial} radio button. Enter the COM port of your serial device in the \textbf{Serial Line} box. Before you can connect on the serial line you need to make sure it has the correct settings. Make your putty settings look like they do in Figure~\ref{fig:putty}. Remember that your COM port may differ. After you have entered the correct settings click \textbf{Open}.
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=0.5\textwidth]{fig0.png}
   \caption{The correct settings to use with Putty}
   \label{fig:putty}
 \end{figure}
+
+\subsubsection{Configuring the proper serial console settings}
+\begin{itemize}
+\item \textbf{Windows users --- }
+  Run putty. From the \textbf{Connection Type} options, select the \textbf{Serial} radio button. Enter the COM port of your serial device in the \textbf{Serial Line} box. Before you can connect on the serial line you need to make sure it has the correct settings. Make your putty settings look like they do in Figure~\ref{fig:putty}. Remember that your COM port may differ. After you have entered the correct settings click \textbf{Open}.
+
 \item \textbf{Linux and OS X users --- } Start minicom from the terminal in config mode by using the \texttt{-s} flag, like so: \texttt{minicom -s}. Use your keyboard to navigate the configuration menu that pops up. Select the \textbf{Serial Port Setup} option. Make your minicom settings look like they do in Figure~\ref{fig:minicom}. Remember that your serial device and ``Lockfile Location'' may differ (you can ignore ``Lockfile Location'', actually). After you gave entered the correct settings hit escape until minicom dumps you out to the serial console window.
+
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=0.5\textwidth]{fig1.png}
@@ -261,7 +262,20 @@ The easiest way to troubleshoot the UART module is to break out an actual serial
 \end{itemize}
 
 \subsubsection{Using the serial console to troubleshoot the UART}
-Once you have your serial console up and running flash your Nexys board with your bit file that has the serial test program on it. (Make sure you've connected the Nexys board to your computer with the serial cable).
+Once you have your serial console up and running flash your Nexys board with your bit file that has the serial test program on it. (Make sure you've connected the Nexys board to your computer with the serial cable).\\\\
+Send some data to the UART from the serial console. This is done by typing in the serial console. The behavior of the serial test program is as follows:
+\begin{enumerate}
+\item Get an ASCII-encoded byte from the UART
+\item Convert that byte to binary
+\item Send that byte back to the computer.
+\end{enumerate}
+So for example if you type in an ASCII '1' in the serial console, the serial test program will return the number 1. The number '1' in ASCII is in a class of characters called ``control characters'', so the serial console should display some symbol indicating it received a control character.\\\\
+So you are looking for the following behavior when interacting with the serial test program:
+\begin{enumerate}
+\item Send 1 ASCII-encoded byte
+\item Receive \textbf{exactly 1} byte back, that is the ASCII-character ``decoded''.
+\end{enumerate}
+If you receive two characters back, if you receive no characters back, if you receive a flood of characters back, or anything that is not that exact sequence, then you have integrated the UART incorrectly.
 
 \section{Adding the New Prog\_Rom module}
 Once you have added the UART and verified that it is functioning correctly, the remaining steps are simple.
@@ -290,38 +304,42 @@ The graphical version of the ratload program is located in the folder ``ratload\
 \subsection{Building from source}
 \label{sec:source_build}
 The Windows versions of ratload contain statically linked binaries and thus are unlikely to malfunction across different versions of Windows. The Linux and OS X versions are not statically linked and if you have problems running them you should compile ratload from source.\\\\
-Ratload has no dependencies other than the libc and should build and run on any POSIX-compliant OS. The source is available at \url{http://github.com/jhladky/ratload}, in the \texttt{nix} folder. Clone the repo and build the program with \texttt{make}.\\\\
+Ratload has no dependencies other than libc and should build and run on any POSIX-compliant OS. The source is available at \url{http://github.com/jhladky/ratload}, in the \texttt{nix} folder. Clone the repo and build the program with \texttt{make}.\\\\
 You must have some sort of build environment set up for this to work. Mac users should have XCode tools installed and get gcc or clang via homebrew/macports/fink, etc. GNU/Linux users should install gcc via their package manager. If you're using a debian based distribution, such as Linux Mint or Ubuntu, then the following will get everything you need:\\
 \centerline{\texttt{sudo apt-get install build-essential}}\\\\
 If you're using some other distro I'm not going to help you because you know what you're doing. After building the binary, follow the above instructions for your relevant OS.
 
 \section{Use}
+Up until now, you've probably followed this pattern when developing your assembly language programs:
+\begin{enumerate}
+\item Run your assembly repeatedly in the ratsim program until it produces a prog\_rom.vhd file and seems to be bug free.
+\item Add the new prog\_rom.vhd file to your project, replacing the old one.
+\item Resynthesize the entire project and reprogram the bit file onto your Nexys board.
+\item Repeat ad infinitum.
+\end{enumerate}
+The steps you have just followed to integrate the vhd files into your RAT CPU, and to install the ratload program onto your computer, will dramatically change this pattern. From now on you do not need to resynthesize your project when ratsim generates a new prog\_rom.vhd file, nor is it necessary to copy that new file into your project. In fact, \textbf{making any more changes to the prog\_rom.vhd file in your project directory will break \texttt{ratload}}.\\\\
+This section contains instructions for identifying the serial device you need to use to communicate with the Nexys board, an overview of the \texttt{ratload} procedure, and instructions on using either the command-line or the graphical (Windows only) ratload program.
+
 \subsection{Identifying your Serial Device}
 \label{sec:serial_id}
+How you identify your serial device will depend on what Nexys board you have as well as whether you are using a USB-serial adapter or not. Before you identify your serial device you need to make sure you have the correct drivers installed for it. This sounds a lot more complicated than it really is. Follow either of the following sections based on which Nexys board version you have to make sure you have the right drivers installed.
+
+\subsubsection{Nexys 2}
+If you have a serial port on your computer, congratulations, you are using a computer from the 20th century! Your OS almost certainly already has installed drivers to use this port, so you don't need to do anything else.\\\\
+If you don't have a serial port, then you need to obtain a USB-to-serial adapter cable. If you're on Windows, the manufacturer of the cable probably provided drivers for you to install along with the cable itself, make sure you install them. If you're using GNU/Linux or OS X, google around to try to find the right driver.\\\\
+Once you think you've installed the driver then you simply need to verify that the OS can see it. In Windows 7, go to the Start menu and right click Computer, and then click manage. Look for the serial device in the device management section of the console. 
+
+\subsubsection{Nexys 3}
+If you have a serial port on your computer, it doesn't matter, you can't use it! The Nexys 3 doesn't have a physical serial port, but instead emulates one with an FTDI chip. The USB cable you use to power and program the board also functions as a serial cable when it needs to. This means you need to install an FTDI driver. FTDI drivers for OS X and Windows 7 are included in the project folder. Install them and be glad you don't have to deal with USB-to-serial cable drivers!
+
+\subsubsection{Finding the port name}
 \begin{itemize}
 \item \textbf{Windows users --- } Run the graphical ratload program. The main window of the program contains a dropdown which lists your available serial devices. If you are using a USB-to-serial adapter the easiest way to be totally sure of the correct COM port number is to unplug the adapter and run the graphical ratload program. While the adapter is still unplugged, note the adapters listed. Then plug in the adapter and click \textbf{File > Refresh Serial Devices}. The COM port that appears in the dropdown is the COM port of the adapter.
 
 \item \textbf{Linux and OS X users --- } In GNU/Linux or OS X, list the contents of the \texttt{/dev} folder. In GNU/Linux your serial adapter will be called something similar to ``ttyS0''. In OS X, it will look like ``tty.usb0'' or similar.
 \end{itemize}
 
-%% Before you use the ratload program you have to make your serial port is set up. Follow either of the following sections based on which Nexys board version you have.
-%% \subsubsection{Nexys 2}
-%% If you have a serial port on your computer, congratulations, you are using a computer from the 20th century! Your OS almost certainly already has installed drivers to use this port, so you don't need to do anything else.\\\\
-%% If you don't have a serial port, then you need to obtain a USB-to-serial adapter cable. If you're on Windows, the manufacturer of the cable probably provided drivers for you to install along with the cable itself, make sure you install them. If you're using GNU/Linux or OS X, google around to try to find the right driver.\\\\
-%% Once you think you've installed the driver then you simply need to verify that the OS can see it. In Windows 7, go to the Start menu and right click Computer, and then click manage. Look for the serial device in the device management section of the console. 
-%% \subsubsection{Nexys 3}
-%% If you have a serial port on your computer, it doesn't matter, you can't use it! The Nexys 3 doesn't have a physical serial port, but instead emulates one with an FTDI chip. The USB cable you use to power and program the board also functions as a serial cable when it needs to. This means you need to install an FTDI driver. FTDI drivers for OS X and Windows 7 are included in the project folder. Install them and be glad you don't have to deal with USB-to-serial cable drivers!
-
-Up until now, you've probably followed this pattern when developing your assembly language programs:
-\begin{enumerate}
-\item Run your assembly repeatedly in the ratsim program until it produces a prog\_rom.vhd file and seems to be relatively bug free.
-\item Add the new prog\_rom.vhd file to your project, replacing the old one.
-\item Resynthesize the entire project and reprogram the bit file onto your Nexys board.
-\item Repeat ad infinitum.
-\end{enumerate}
-The steps you have just followed to integrate the vhd files into your RAT CPU, and to install the ratload program onto your computer, will dramatically change this pattern. From now on you do not need to resynthesize your project when ratsim generates a new prog\_rom.vhd file, nor is it necessary to copy that new file into your project. In fact, \textbf{making any more changes to the prog\_rom.vhd file in your project directory will break \texttt{ratload}}.\\\\
-The following is a general overview of the new pattern you need to follow in order to use \texttt{ratload} properly:
-
+\subsection{Ratload Procedure}
 \begin{enumerate}
 \item Program your Nexys board with the generated bit file.
 
@@ -334,10 +352,23 @@ The following is a general overview of the new pattern you need to follow in ord
 \item To send a new prog\_rom.vhd file you must power cycle the Nexys board (If you programmed your bit file into volatile memory, then you'll need to reprogram it as well.) Then repeat this procedure.
 \end{enumerate}
 
-\subsection{Using winRATLoad (Windows)}
+\subsection{Using graphical ratload (Windows only)}
 
-\subsection{Using ratload (GNU/Linux or OS X)}
-ratload takes exactly two arguments: ``-d'' to specify a serial sevice and ``-f'' to specify a prog\_rom.vhd file to parse. You'll probably have to run it as root in order to access the serial device. The following is an exlpanation of all the errors messages ratload can produce:
+\subsection{Using ratload on the command line (all platforms)}
+\begin{infobox}
+  {\infosign}You'll probably have to run ratload as root in order to access the serial device.
+\end{infobox}
+Ratload can be run in the following configurations. You can mix and match the short and long forms of the options as you please; both are included here.
+\begin{itemize}
+\item \texttt{ratload -h|-{}-help} ~Display a help message
+\item \texttt{ratload -l|-{}-list} ~List available serial devices (only on the Windows command-line version)
+\item \texttt{ratload -d|-{}-device <serial device> -t|-{}-test} ~Test communication with the Nexys board through the specified serial device. This invocation of ratload is used in Section~\ref{sec:troubleshooting}
+\item \texttt{ratload -d|-{}-device <serial device> -f|-{}-file <prog\_rom file>} ~The most common invocation of the ratload program. Send the specified prog\_rom file to the Nexys board through the specified serial device.
+\end{itemize}
+
+\subsection{Errors}
+Both the graphical and command-line versions of the ratload versions can fail with several different error messages. This section lists all possible error messages, an explanation of each, and a suggestion on how to resolve the error.
+
 \begin{itemize}
 \item ``Opening prog\_rom failed'': Ratload could not open your prog\_rom.vhd file. Perhaps it couldn't find it, or it didn't have permission.
 \item ``Opening serial device failed'': Ratload could not open the serial device you specified. Perhaps you specified it incorrectly, or ratload does not have permission to access it.
