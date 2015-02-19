@@ -1,8 +1,9 @@
 \documentclass[notitlepage]{article}
 \usepackage{graphicx}
 \usepackage{bmpsize}
-\graphicspath{ {img/} }
+\usepackage{color}
 \usepackage{courier}
+\usepackage{listings}
 \usepackage{times}
 \usepackage[T1]{fontenc}
 \usepackage{textcomp}
@@ -14,6 +15,10 @@
 \usepackage{titlesec}
 \usepackage{hyperref}
 \usepackage[clock]{ifsym}
+
+\lstset{language=VHDL}
+\lstset{basicstyle=\normalsize\ttfamily,breaklines=true}
+\graphicspath{ {img/} }
 \newcommand{\sectionbreak}{\clearpage}
 \newcommand{\infosign}{\fontencoding{U}\fontfamily{futs}\huge\selectfont\char 116\relax}
 \newcommand{\warningsign}{\fontencoding{U}\fontfamily{futs}\Large\selectfont\char 66\relax}
@@ -91,19 +96,26 @@ This section will cover adding the UART module to the RAT CPU and hooking up all
 \begin {enumerate}
 \item In the Xilinx ISE Environment, go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the \texttt{ratload} project directory (where this README is located), and then to the ``vhd'' folder. Select the ``RS232RefComp.vhd'' and ``ascii\_to\_int.vhd'' files and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
 
-\item In the rat\_wrapper.ucf file (your title may differ slightly), add the following NETs if you have a Nexys 2 board:\\
-\centerline{\texttt{NET "TXD" LOC = P9;}}\\
-\centerline{\texttt{NET "RXD" LOC = U6;}}\\
-If you have a Nexys 3 board, then add these lines instead:\\
-\centerline{\texttt{NET "TXD" LOC = XX;}}\\
-\centerline{\texttt{NET "RXD" LOC = XX;}}
+\item In the rat\_wrapper.ucf file (your title may differ slightly), add the following NETs if you have a Nexys 2 board:
+\begin{lstlisting}
+NET "TXD" LOC = P9;
+NET "RXD" LOC = U6;
+\end{lstlisting}
 
-\item In the architecture section of the top-level rat\_wrapper module, add the following two lines to the entity declaration:\\
-\centerline{\texttt{RXD : ~in STD\_LOGIC;}}\\
-\centerline{\texttt{TXD : out STD\_LOGIC;}}
+If you have a Nexys 3 board, then add these lines instead:
+\begin{lstlisting}
+NET "TXD" LOC = XX;
+NET "RXD" LOC = XX;
+\end{lstlisting}
 
-\item In the same file, add the following component declarations:
-\begin{verbatim}
+\item In the architecture section of the top-level rat\_wrapper module, add the following two lines to the entity declaration:
+\begin{lstlisting}
+RXD : in  STD\_LOGIC;
+TXD : out STD\_LOGIC;
+\end{lstlisting}
+
+\item In the same file, add the following component declaration, for the serial module:
+  \begin{lstlisting}
 component RS232RefComp
    Port(
       RXD      : in     STD_LOGIC;
@@ -118,16 +130,19 @@ component RS232RefComp
       PE, FE   : out    STD_LOGIC;
       OE       : out    STD_LOGIC);
 end component;
+\end{lstlisting}
 
+and for the ascii\_to\_int converter:
+\begin{lstlisting}
 component ascii_to_int
    Port(
       ascii_in : in     STD_LOGIC_VECTOR(7 downto 0);
       int_out  : out    STD_LOGIC_VECTOR(7 downto 0));
 end component;
-\end{verbatim}
+\end{lstlisting}
 
 \item In the same section, add the following signals:
-\begin{verbatim}
+\begin{lstlisting}
 signal s_d_avail      : STD_LOGIC;
 signal s_d_sent       : STD_LOGIC;
 signal s_d_strb       : STD_LOGIC;
@@ -135,20 +150,21 @@ signal s_d_conf       : STD_LOGIC;
 signal s_db_from_rat  : STD_LOGIC_VECTOR(7 downto 0);
 signal s_db_to_conv   : STD_LOGIC_VECTOR(7 downto 0);
 signal s_db_to_rat    : STD_LOGIC_VECTOR(7 downto 0);
-\end{verbatim}
+\end{lstlisting}
 
 \item Add the following port map for the ascii\_to\_int module:
-\begin{verbatim}
+\begin{lstlisting}
 CONV: ASCII_TO_INT port map(
    ASCII_IN => S_DB_TO_CONV,
    INT_OUT  => S_DB_TO_RAT);
-\end{verbatim}
+\end{lstlisting}
+
 Data sent over the UART will be ASCII encoded, but we want it to be in hex, so we convert it as soon as it gets out of the UART module. The \texttt{S\_DB\_TO\_CONV} signal receives an ASCII-encoded byte from the UART, and the \texttt{S\_DB\_TO\_RAT} signal has the output in binary.
 
 \item Add the \texttt{S\_DB\_TO\_RAT} signal to whatever method you use to get intputs into the RAT. For example, if you have a  separate input module, then send the signal into that module. If you manage your I/O in the rat\_wrapper module, then add an \texttt{elsif} block. The \texttt{PORT\_ID} for \textbf{input} from the UART is \textbf{0x0F}.
 
 \item Add the following port map for the RS232RefComp module:
-\begin{verbatim}
+\begin{lstlisting}
 UART: RS232REFCOMP port map(
    RXD     => RXD,
    RST     => RST,
@@ -163,7 +179,7 @@ UART: RS232REFCOMP port map(
    FE      => open,
    PE      => open,
    OE      => open);
-\end{verbatim}
+\end{lstlisting}
 The following is a line-by-line breakdown of the port map:
 \begin{itemize}
 \item \texttt{RXD}: Receive port for the UART. Serial data goes into the physical UART on the Nexys board and then into this module.
@@ -184,7 +200,8 @@ The following is a line-by-line breakdown of the port map:
   {\warningsign} \textbf{THIS IS A CRITICAL STEP!} I/O devices like the UART require more than just a simple data bus for proper operation. In the previous step you hooked-up several control signals to the UART modue, now you have to hook-up the other end! For convenience sake we will have the output process control these signals, and to make it really easy, an example output process is reproduced here.
 \end{infobox}
 You may need to adapt some of the signal names to fit your conventions. \textbf{Make sure to do so without changing the UART signals!}
-\begin{verbatim}
+
+\begin{lstlisting}
 CONSTANT UART_OUT_ID   : STD_LOGIC_VECTOR(7 downto 0) := x"0E";
 
 outputs: process(CLK) begin
@@ -202,7 +219,7 @@ outputs: process(CLK) begin
       end if;
    end if;
 end process outputs;
-\end{verbatim}
+\end{lstlisting}
 
 \item Make sure that you can successfully synthesize your RAT\_wrapper with the UART integrated. This is the last step in integrating the UART.
 \begin{infobox}
@@ -287,7 +304,7 @@ Once you have added the UART and verified that it is functioning correctly, the 
 \end{infobox}
 
 \item In the architecture section of the rat\_cpu module, edit the componet declaration for the prog\_rom module. Add the following line:\\
-\centerline{\texttt{TRISTATE\_IN : in STD\_LOGIC\_VECTOR(7 downto 0)}}
+  \centerline{\texttt{TRISTATE\_IN : in STD\_LOGIC\_VECTOR(7 downto 0)}}
 
 \item In the same file, edit the port map decaration for the prog\_rom module. Map the signal for the RAT CPU's tristate bus into to the prog\_rom module's tristate bus. The RAT CPU's ``tristate\_bus'' may be called the ``MULTI\_BUS'' in your CPU. (Regardless of its name, this is the bux that connects the ALU, the program counter, the scratch pad, and others.) That line will look similar to this:\\
   \centerline{\texttt{tristate\_in =\textgreater ~tristate\_bus\_sig(7 downto 0),}}
