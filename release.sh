@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script should be run on a machine that can compile latex files and the POSIX version of the ratload program
+
 PRJ_DIR="project_master_v`cat .version`"
 
 if [ -e $PRJ_DIR ]; then
