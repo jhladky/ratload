@@ -14,10 +14,10 @@ class App:
         file_menu = Tk.Menu(top_menu, tearoff=0)
         help_menu = Tk.Menu(top_menu, tearoff=0)
 
-        logo_png = Image.open("winRATLoad_logo.png")
+        logo_png = Image.open("ratload_logo.png")
         logo_png = logo_png.resize((100, 100), Image.ANTIALIAS)
         logo = ImageTk.PhotoImage(logo_png)
-        logo_label = ttk.Label(master, image=logo, text="winRATLoad",
+        logo_label = ttk.Label(master, image=logo, text="ratload",
                               compound=Tk.LEFT, font=("Helvetica", 24))
 
         file_label = ttk.Label(master, text="Selected File", font=("Helvetica", 13))
@@ -83,7 +83,7 @@ class App:
     def refresh_serial_devices(self):
         def run():
             proc = subprocess.Popen(
-                ["./winRATLoad", "-l"],
+                ["./ratload", "-l"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )

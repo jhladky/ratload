@@ -1,15 +1,15 @@
-# Makefile for winRATLoad development
+# Makefile for ratload development
 
 DEPS=jssc.o
 CLASSPATH="jssc.jar;."
 CC=gcj
 CCFLAGS=-static-libgcj -static-libgcc -Os -fjni
 
-winRATLoad.exe: Main.java $(DEPS)
-	$(CC) $(CCFLAGS) --main=Main -o winRATLoad.exe -classpath $(CLASSPATH) Main.java $(DEPS)
+ratload.exe: Ratload.java $(DEPS)
+	$(CC) $(CCFLAGS) --main=Ratload -o $@ -classpath $(CLASSPATH) $< $(DEPS)
 
 %.o: %.jar
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 clean:
-	@rm -f winRATLoad.exe *.o
+	@rm -f ratload.exe *.o
