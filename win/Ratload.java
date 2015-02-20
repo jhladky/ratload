@@ -236,7 +236,7 @@ public class Ratload {
          }
          System.exit(0);
       } else if (hFound || (!tFound && (!fFound || !dFound)) ||
-                 (tFound && !dFound)) {
+                 (tFound && !dFound) || (tFound && fFound)) {
          System.out.println("Usage: ratload -d|--device <serial device> " +
                             "-f|--file <prog_rom file>");
          System.out.println("       (program Nexys2 board)");
