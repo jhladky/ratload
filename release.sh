@@ -36,4 +36,4 @@ cp doc/README.pdf $PRJ_DIR
 
 cp nix/ratload $PRJ_DIR/bin/ratload_nix
 
-cp win/winRATLoad.exe $PRJ_DIR/bin/ratload_win.exe
+cp win/ratload.exe $PRJ_DIR/bin/ratload_win.exe
