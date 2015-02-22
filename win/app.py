@@ -1,10 +1,10 @@
 import subprocess
 import threading
-import Tkinter as Tk
-import ttk
-from tkFileDialog import askopenfilename
+import tkinter as Tk
+import tkinter.scrolledtext 
+import tkinter.ttk as ttk
+from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
-
 
 class App:
     def __init__(self, master):
@@ -18,31 +18,44 @@ class App:
         logo_png = logo_png.resize((100, 100), Image.ANTIALIAS)
         logo = ImageTk.PhotoImage(logo_png)
         logo_label = ttk.Label(master, image=logo, text="ratload",
-                              compound=Tk.LEFT, font=("Helvetica", 24))
+                               compound=Tk.LEFT, font=("Helvetica", 24))
 
-        file_label = ttk.Label(master, text="Selected File", font=("Helvetica", 13))
-        self.file_entry = ttk.Entry(master, state=Tk.DISABLED)
-        file_button = ttk.Button(master, text="Choose File...", command=self.select_file)
+        file_label = ttk.Label(master, text="Selected File",
+                               font=("Helvetica", 13))
+        self.file_var = Tk.StringVar()
+        self.file_entry = ttk.Entry(master, state=Tk.DISABLED,
+                                    textvariable=self.file_var)
+        file_button = ttk.Button(master, text="Choose File...",
+                                 command=self.select_file)
 
-        device_label = ttk.Label(master, text="Selected Serial Device", font=("Helvetica", 13))
+        device_label = ttk.Label(master, text="Selected Serial Device",
+                                 font=("Helvetica", 12))
         device_entry_f = ttk.Frame(master)
-        self.device_entry = ttk.Combobox(device_entry_f, height=1)
+        self.device_var = Tk.StringVar()
+        self.device_entry = ttk.Combobox(device_entry_f, height=1,
+                                         textvariable=self.device_var)
 
         program_button_f = ttk.Frame(master)
-        program_button = ttk.Button(program_button_f, text="Program")
-
-        seperator = ttk.Separator(master)
+        program_button = ttk.Button(program_button_f, text="Program\n  Board",
+                                    command=self.program_board)
         
-        results_var = Tk.StringVar()
         results_f = ttk.Frame(master)
-        results = Tk.Message(results_f, textvariable=results_var, background="white")
+        self.results = Tk.scrolledtext.ScrolledText(
+            master=results_f,
+            wrap=Tk.WORD,
+            width=40
+        )
         
         file_menu.add_command(label="Refresh Serial Devices",
                               command=self.refresh_serial_devices)
+        file_menu.add_command(label="Run Serial Test",
+                              command=self.run_serial_test)
+        file_menu.add_command(label="Clear Results Area",
+                              command=self.clear_results)
         file_menu.add_command(label="Exit", command=root.quit)
         top_menu.add_cascade(label="File", menu=file_menu)
 
-        help_menu.add_command(label="About / License")
+        help_menu.add_command(label="About / License", command=self.show_help)
         top_menu.add_cascade(label="Help", menu=help_menu)
         
         master.config(menu=top_menu)
@@ -66,19 +79,53 @@ class App:
                               sticky=Tk.E+Tk.W+Tk.N+Tk.S, padx="10", pady="5")
         program_button.pack(fill=Tk.BOTH)
 
-        seperator.grid(row=5, columnspan=3)
-        
-        results_f.grid(row=6, columnspan=3, rowspan=5,
+        results_f.grid(row=5, columnspan=3, rowspan=10,
                        sticky=Tk.E+Tk.W+Tk.N+Tk.S, padx="10", pady="5")
-        results.pack(fill=Tk.BOTH)
+        results_f.grid_propagate(False)
+        self.results.pack(fill=Tk.X)
+
+        # text.config(state=NORMAL)
+        # text.delete(1.0, END)
+        # text.insert(END, text)
+        # text.config(state=DISABLED
+
+
+    def show_help(self):
+        pass
 
 
     def select_file(self):
         filename = askopenfilename().strip()
-        
-        self.file_entry.delete(0, Tk.END)
-        self.file_entry.insert(0, filename)
 
+        print(filename)
+        self.file_var.set(filename)
+
+
+    def run_serial_test(self):
+        def run():
+            proc = subprocess.Popen(
+                ["./ratload", "-d", self.device_var.get(), "-t"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            proc.wait()
+
+        self.results.config(state=Tk.NORMAL)
+        self.results.insert(Tk.END, "Running Serial Test...")
+        self.results.config(state=Tk.DISABLED)
+        thread = threading.Thread(target=run)
+        thread.start()
+        return thread
+
+
+    def program_board(self):
+        pass
+    
+
+    def clear_results(self):
+        self.results.config(state=Tk.NORMAL)
+        self.results.delete(1.0, Tk.END)
+        self.results.config(state=Tk.DISABLED)
 
     def refresh_serial_devices(self):
         def run():
@@ -103,7 +150,7 @@ root = Tk.Tk()
 app = App(root)
 
 root.resizable(width=Tk.FALSE, height=Tk.FALSE)
-root.geometry("{}x{}".format(415, 630))
-root.wm_title("winRATLoad")
+root.geometry("{}x{}".format(410, 620))
+root.wm_title("ratload")
 
 root.mainloop()

@@ -34,7 +34,7 @@ public class Ratload {
    private static final int TEST_LENGTH = 16;
 
    public static void main(String[] args) {
-      String [] parsed = parse_args(args);
+      String[] parsed = parse_args(args);
 
       try {
          if (parsed[0] == null) {
