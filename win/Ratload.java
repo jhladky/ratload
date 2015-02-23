@@ -7,21 +7,75 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.FileReader;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadFactory;
+
 public class Ratload {
 
    private static class HandshakeException extends Exception {
       private static final long serialVersionUID = 1L;
       public HandshakeException() {}
+
+      @Override
+      public String getMessage() {
+         return "Handshake with Nexys board failed.";
+      }
    }
 
    private static class InvalidProgRomException extends Exception {
       private static final long serialVersionUID = 1L;
       public InvalidProgRomException() {}
+
+      @Override
+      public String getMessage() {
+         return "Invalid prog_rom file.";
+      }
    }
 
    private static class SerialDataException extends Exception {
       private static final long serialVersionUID = 1L;
       public SerialDataException() {}
+
+      @Override
+      public String getMessage() {
+         return "Received bad data from Nexys board.";
+      }
+      
+   }
+
+   private static class ByteRT implements Callable<Void> {
+
+      private Thread mainThread;
+      private SerialPort port;
+      private byte b;
+      
+      public ByteRT(Thread mainThread, SerialPort port, byte b) {
+         this.mainThread = mainThread;
+         this.port = port;
+         this.b = b;
+         
+      }
+
+      public Void call() throws
+            SerialPortException,
+            Ratload.SerialDataException {
+         byte confirm;
+
+         this.port.writeByte(this.b);
+         confirm = port.readBytes(1)[0];
+         if (confirm != this.b) {
+            throw new Ratload.SerialDataException();
+         }
+
+         mainThread.interrupt();
+         return null;
+      }
    }
 
    private static final int PROG_ROM_LINES = 1024;
@@ -33,9 +87,24 @@ public class Ratload {
    private static final byte MAGIC_BYTE = 0X7E;
    private static final int TEST_LENGTH = 16;
 
+   private static ExecutorService threadExec;
+
    public static void main(String[] args) {
       String[] parsed = parse_args(args);
 
+      // Initialize the ExecutorService. This will manage the threads
+      // that communicate with the serial port.
+      threadExec = Executors.newSingleThreadExecutor(new ThreadFactory() {
+         public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            return thread;
+         }
+      });
+      
+      // If we were using Java 7 we could use the fancy new syntax for
+      // handling multiple exceptions the same way...
+      // Instead we're stuck with this ridiculous try-catch block.
       try {
          if (parsed[0] == null) {
             run_serial_test(parsed[1]);
@@ -43,23 +112,28 @@ public class Ratload {
             program_board(parsed[0], parsed[1]);
          }
       } catch (FileNotFoundException e) {
-         System.err.println("File not found.");
+         System.err.println(e.getMessage());
       } catch (InvalidProgRomException e) {
-         System.err.println("Invalid prog_rom file.");
+         System.err.println(e.getMessage());
       } catch (IOException e) {
-         System.err.println("Bad file read.");
+         System.err.println(e.getMessage());
       } catch (SerialPortException e) {
-         System.err.println("Bad serial device.");
+         System.err.println(e.getMessage());
       } catch (HandshakeException e) {
-         System.err.println("Handshake with Nexys board failed.");
+         System.err.println(e.getMessage());
       } catch (SerialDataException e) {
-         System.err.println("Received bad data from Nexys board.");
+         System.err.println(e.getMessage());
+      } catch (TimeoutException e) {
+         System.err.println(e.getMessage());
       }
+
+      threadExec.shutdownNow();
    }
 
    private static void run_serial_test(String serialDevice) throws
          SerialPortException,
          SerialDataException,
+         TimeoutException,
          HandshakeException {
       SerialPort sp = new SerialPort(serialDevice);
       byte i, confirm;
@@ -69,7 +143,7 @@ public class Ratload {
       for (i = 0; i < TEST_LENGTH; i++) {
          sp.writeByte((byte) int_to_char(i));
          confirm = sp.readBytes(1)[0];
-         if (confirm != i) {
+         if (confirm != int_to_char(i)) {
             throw new Ratload.SerialDataException();
          }
       }
@@ -77,16 +151,29 @@ public class Ratload {
       System.out.println("PASS");
    }
 
+   private static byte char_to_int(final char in) throws
+         InvalidProgRomException {
+      if (in >= '0' && in <= '9') {
+         return (byte) (in - '0');
+      } else if (in >= 'A' && in <= 'F') {
+         return (byte) (in - 'A' + 10);
+      } else {
+         throw new InvalidProgRomException();
+      }
+   }
+   
    private static void program_board(String file, String serialDevice) throws
          FileNotFoundException,
          InvalidProgRomException,
          IOException,
          SerialPortException,
+         TimeoutException,
          SerialDataException,
          HandshakeException {
       byte[][] progRomArr = new byte[PROG_ROM_LINES][PROG_ROM_SEGS];
       char[][] progRomProper = new char[PROG_ROM_LINES][PROG_ROM_SEGS];
-      byte c, topC, confirm;
+      //byte c, confirm;
+      byte c;
       int i, j;
       FileReader progRom = new FileReader(new File(file));
       SerialPort sp = new SerialPort(serialDevice);
@@ -95,18 +182,10 @@ public class Ratload {
       loop_to_array(progRom);
       for (i = 0; i < INIT_HEIGHT; i++) {
          for (j = 0; j < INIT_WIDTH; j++) {
-            c = (byte) progRom.read();
-            if (c >= '0' && c <= '9') {
-               c -= '0';
-            } else if (c >= 'A' && c <= 'F') {
-               c = (byte) (c - 'A' + 10);
-            } else {
-               progRom.close();
-               sp.closePort();
-               throw new InvalidProgRomException();
-            }
-            progRomArr[(i * 16) + ((63 - j) / 4)][j % 4 + 1] = c;
-         }
+            progRomArr[(i * 16) + ((63 - j) / 4)][j % 4 + 1] =
+               char_to_int((char) progRom.read());
+         } 
+
          //the " at the end of the string:
          progRom.read();
          loop_to_array(progRom);
@@ -115,23 +194,9 @@ public class Ratload {
       //loop through the INITP prog_rom array
       for (i = 0; i < INITP_HEIGHT; i++) {
          for (j = 0; j < INITP_WIDTH; j++) {
-            c = (byte) progRom.read();
-            if (c >= '0' && c <= '9') {
-               c -= '0';
-            } else if (c >= 'A' && c <= 'F') {
-               c = (byte) (c - 'A' + 10);
-            } else {
-               progRom.close();
-               sp.closePort();
-               throw new InvalidProgRomException();
-            }
-            topC = c;
-            topC &= 0x0c;
-            topC = (byte) (topC >> 2);
-            progRomArr[(i * 128) + ((63 - j) * 2) + 1][0] = topC;
-
-            c &= 0x03;
-            progRomArr[(i * 128) + ((63 - j) * 2)][0] = c;
+            c = char_to_int((char) progRom.read());
+            progRomArr[(i * 128) + ((63 - j) * 2) + 1][0] = (byte) (((int) c & 0X0C) >> 2);
+            progRomArr[(i * 128) + ((63 - j) * 2)][0] = (byte) ((int) c & 0x03);
          }
 
          progRom.read();
@@ -149,44 +214,69 @@ public class Ratload {
 
       config_and_handshake(sp);
 
-      System.out.println("Connection opened: sending data");
+      System.out.println("Connection opened: sending data...");
 
       // Send the instructions to the UART.
-      for (i = 0; i < 1024; i++) {
-         for (j = 4; j > -1; j--) {
-            sp.writeByte((byte) progRomProper[i][j]);
-            confirm = sp.readBytes(1)[0];
-
-            if (confirm != progRomArr[i][j]) {
-               throw new Ratload.SerialDataException();
-            }
+      for (i = 0; i < PROG_ROM_LINES; i++) {
+         for (j = PROG_ROM_SEGS - 1; j > -1; j--) {
+            bytert(sp, (byte) progRomProper[i][j]);
          }
-         if (i % 100 == 0) {
-            System.err.printf(".");
+         if (i % 103 == 0) {
+            System.out.print((int) (i / 1024.0 * 100) + "% ");
          }
       }
 
       sp.closePort();
-      System.out.println("Finished.");
+      System.out.printf("\nFinished.\n");
    }
 
    // The "handshaking procedure". Send a special byte to the
    // UART and wait for it to send it back. This will tell the
    // UART we are ready and confirm the UART is ready as well.
    private static void config_and_handshake(SerialPort port) throws
-         HandshakeException,
-         SerialPortException {
-      byte confirm;
-
+         Ratload.HandshakeException,
+         SerialPortException,
+         TimeoutException {
       port.openPort();
-      port.setParams(9600, 8, 1, 1, false, false);
+      port.setParams(57600, 8, 1, 1, false, false);
 
-      port.writeByte(MAGIC_BYTE);
-      confirm = port.readBytes(1)[0];
-      if (confirm != MAGIC_BYTE) {
-         // REMOVE THIS LATER
-         System.out.println("error >>>" + confirm + "<<<");
+      try {
+         bytert(port, MAGIC_BYTE);
+      } catch (Ratload.SerialDataException e) {
+         // Convert the SerialDataException to a HandshakeException
+         // in this special case.
          throw new Ratload.HandshakeException();
+      }
+   }
+
+   private static void bytert(SerialPort port, byte b) throws
+         Ratload.SerialDataException,
+         SerialPortException,
+         TimeoutException {
+      ByteRT rt = new ByteRT(Thread.currentThread(), port, b);
+      Future<Void> res = null;
+      Throwable unknown;
+
+      try {
+         res = threadExec.submit(rt);
+         res.get(10, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+         // This means that the thread finished successfully
+         // We don't need to do anything here.
+      } catch (ExecutionException e) {
+         // The thread threw an exception; figure out what it was
+         // and re-throw it.
+         unknown = e.getCause();
+
+         if (unknown instanceof Ratload.SerialDataException) {
+            throw (Ratload.SerialDataException) unknown;
+         } else {
+            throw (SerialPortException) unknown;
+         }
+      } catch (TimeoutException e) {
+         // Catch the TimeoutException, cancel the thread, and re-throw it.
+         res.cancel(true);
+         throw new TimeoutException("Timeout.");
       }
    }
 

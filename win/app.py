@@ -6,6 +6,7 @@ import tkinter.ttk as ttk
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
 
+
 class App:
     def __init__(self, master):
         frame = Tk.Frame(master)
@@ -83,11 +84,12 @@ class App:
                        sticky=Tk.E+Tk.W+Tk.N+Tk.S, padx="10", pady="5")
         results_f.grid_propagate(False)
         self.results.pack(fill=Tk.X)
+        self.results.config(state=Tk.DISABLED)
 
-        # text.config(state=NORMAL)
-        # text.delete(1.0, END)
-        # text.insert(END, text)
-        # text.config(state=DISABLED
+        # self.results.config(state=NORMAL)
+        # self.results.delete(1.0, END)
+        # self.results.insert(END, text)
+        # self.results.config(state=Tk.DISABLED)
 
 
     def show_help(self):
@@ -101,26 +103,40 @@ class App:
         self.file_var.set(filename)
 
 
-    def run_serial_test(self):
+    def _do_ratload(self, args):
         def run():
             proc = subprocess.Popen(
-                ["./ratload", "-d", self.device_var.get(), "-t"],
+                ["./ratload"] + args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
+            while proc.poll() is None:
+                byte = proc.stdout.read(1)
+                self.append(byte)
             proc.wait()
+            self.append(proc.stdout.read())
 
-        self.results.config(state=Tk.NORMAL)
-        self.results.insert(Tk.END, "Running Serial Test...")
-        self.results.config(state=Tk.DISABLED)
         thread = threading.Thread(target=run)
         thread.start()
         return thread
 
 
+    def run_serial_test(self):
+        self.append("Running Serial Test...\n")
+        self._do_ratload(["-d", self.device_var.get(), "-t"])
+
+
+
     def program_board(self):
-        pass
-    
+        self.append("Programming Board...\n")
+        self._do_ratload(["-d", self.device_var.get(),
+                          "-f", self.file_var.get()])
+
+
+    def append(self, s):
+        self.results.config(state=Tk.NORMAL)
+        self.results.insert(Tk.END, s)
+        self.results.config(state=Tk.DISABLED)
 
     def clear_results(self):
         self.results.config(state=Tk.NORMAL)
