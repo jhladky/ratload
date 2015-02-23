@@ -68,9 +68,6 @@ RAT_CPU/*.csv
 RAT_CPU/*.txt
 RAT_CPU/*.xml
 
-# Binaries
-ratload
-
 # http://www.gnu.org/software/automake
 Makefile.in
 
