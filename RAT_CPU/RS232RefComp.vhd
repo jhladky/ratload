@@ -73,7 +73,8 @@ architecture Behavioral of Rs232RefComp is
 ------------------------------------------------------------------------
 -- Signal Declarations
 ------------------------------------------------------------------------
-	constant baudDivide : std_logic_vector(7 downto 0) := "10100011"; 	--Baud Rate dividor, set now for a rate of 9600.
+	constant baudDivide : std_logic_vector(7 downto 0) := "00011011";
+   --constant baudDivide : std_logic_vector(7 downto 0) := "10100011"; 	--Baud Rate dividor, set now for a rate of 9600.
 																								--Found by dividing 50MHz by 9600 and 16.
 	signal rdReg	:  std_logic_vector(7 downto 0) := "00000000";			--Receive holding register
 	signal rdSReg	:  std_logic_vector(9 downto 0) := "1111111111";		--Receive shift register
