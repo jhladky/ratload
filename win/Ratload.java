@@ -46,7 +46,6 @@ public class Ratload {
       public String getMessage() {
          return "Received bad data from Nexys board.";
       }
-      
    }
 
    private static class ByteRT implements Callable<Void> {
@@ -58,8 +57,7 @@ public class Ratload {
       public ByteRT(Thread mainThread, SerialPort port, byte b) {
          this.mainThread = mainThread;
          this.port = port;
-         this.b = b;
-         
+         this.b = b;         
       }
 
       public Void call() throws
@@ -172,13 +170,12 @@ public class Ratload {
          HandshakeException {
       byte[][] progRomArr = new byte[PROG_ROM_LINES][PROG_ROM_SEGS];
       char[][] progRomProper = new char[PROG_ROM_LINES][PROG_ROM_SEGS];
-      //byte c, confirm;
-      byte c;
+      byte b;
       int i, j;
       FileReader progRom = new FileReader(new File(file));
       SerialPort sp = new SerialPort(serialDevice);
 
-      //loop through the INIT prog_rom array
+      // Loop through the INIT prog_rom array.
       loop_to_array(progRom);
       for (i = 0; i < INIT_HEIGHT; i++) {
          for (j = 0; j < INIT_WIDTH; j++) {
@@ -186,17 +183,17 @@ public class Ratload {
                char_to_int((char) progRom.read());
          } 
 
-         //the " at the end of the string:
+         // Consume the " at the end of the string.
          progRom.read();
          loop_to_array(progRom);
       }
 
-      //loop through the INITP prog_rom array
+      // Loop through the INITP prog_rom array.
       for (i = 0; i < INITP_HEIGHT; i++) {
          for (j = 0; j < INITP_WIDTH; j++) {
-            c = char_to_int((char) progRom.read());
-            progRomArr[(i * 128) + ((63 - j) * 2) + 1][0] = (byte) (((int) c & 0X0C) >> 2);
-            progRomArr[(i * 128) + ((63 - j) * 2)][0] = (byte) ((int) c & 0x03);
+            b = char_to_int((char) progRom.read());
+            progRomArr[(i * 128) + ((63 - j) * 2) + 1][0] = (byte) (((int) b & 0X0C) >> 2);
+            progRomArr[(i * 128) + ((63 - j) * 2)][0] = (byte) ((int) b & 0x03);
          }
 
          progRom.read();
@@ -205,7 +202,7 @@ public class Ratload {
 
       progRom.close();
 
-      //convert the instructions BACK to ASCII
+      // Convert the instructions *back* to ASCII.
       for (i = 0; i < PROG_ROM_LINES; i++) {
          for (j = 0; j < PROG_ROM_SEGS; j++) {
             progRomProper[i][j] = int_to_char(progRomArr[i][j]);
@@ -261,7 +258,7 @@ public class Ratload {
          res = threadExec.submit(rt);
          res.get(10, TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
-         // This means that the thread finished successfully
+         // This means that the thread finished successfully.
          // We don't need to do anything here.
       } catch (ExecutionException e) {
          // The thread threw an exception; figure out what it was
@@ -284,7 +281,7 @@ public class Ratload {
       return (char) (in + (in <= 9 ? '0' : ('A' - 10)));
    }
 
-   //loop to get to the beginning of the data
+   // Loop to get to the beginning of the data.
    private static void loop_to_array(FileReader prog_rom) throws IOException {
       char a = ' ';
 
