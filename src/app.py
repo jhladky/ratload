@@ -106,7 +106,7 @@ class App:
     def _do_ratload(self, args):
         def run():
             proc = subprocess.Popen(
-                ["./ratload"] + args,
+                ["./ratload_Windows_x86.exe"] + args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
@@ -146,7 +146,7 @@ class App:
     def refresh_serial_devices(self):
         def run():
             proc = subprocess.Popen(
-                ["./ratload", "-l"],
+                ["./ratload_Windows_x86", "-l"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
@@ -167,6 +167,6 @@ app = App(root)
 
 root.resizable(width=Tk.FALSE, height=Tk.FALSE)
 root.geometry("{}x{}".format(410, 620))
-root.wm_title("ratload")
+root.wm_title("ratload_Windows_x86")
 
 root.mainloop()

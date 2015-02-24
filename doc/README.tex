@@ -47,7 +47,8 @@ innerleftmargin=5pt,innerrightmargin=5pt]{infobox}
 \pagenumbering{arabic}
 
 \section{Introduction}
-The ratload system consists of two separate components: a computer program and a set of VHDL modules. This guide will detail how to install, configure and run both. It is necesssary to follow the instructions in both \emph{Integration} sections, and then either of the \emph{Installation} sections, depending on the target operating system.
+\texttt{Ratload} is a system for loading new RAT assembly programs on to the RAT CPU without the need for resynthesis.\\\\
+The system consists of two components: a computer program and a set of VHDL modules. This guide will detail how to install and use --- and optionally troubleshoot --- both. It is necesssary to follow the instructions in both \emph{Integration} sections, and then either of the \emph{Installation} sections, depending on the target platform. \texttt{Ratload} is compatible with Windows and Linux.
 
 \subsection{Requirements}
 If you have a Nexys 2 board --- You will need a serial cable. If your computer does not have a serial port, then you will need a USB-to-serial adapter. Here's an example: \url{http://amzn.com/B0007T27H8}. Any adapter will do as long as you have the right drivers for it.\\
@@ -58,6 +59,7 @@ Do not integrate ratload into your RAT CPU until all the major components of the
 The following is a listing of each file in the \texttt{ratload} system and a brief description of the file's contents and purpose.
 \begin{itemize}
 \item \texttt{README.pdf} This guide.
+\item \texttt{vhdl/uart.vhd} Top-Level UART VHDL module. Required for communication with host computer.
 \item \texttt{vhdl/RS232RefComp.vhd} UART VHDL module. Required for communication with host computer.
 \item \texttt{vhdl/ascii\_to\_int.vhd} VHDL module to convert ASCII-encoded hexidecimal numbers into binary.
 \item \texttt{vhdl/prog\_rom.vhd} Replacement prog\_rom module for the RAT CPU.
@@ -65,15 +67,14 @@ The following is a listing of each file in the \texttt{ratload} system and a bri
 \item \texttt{vhdl/prog\_ram.vhd} VHDL module related to the internal operation of the prog\_rom.
 \item \texttt{vhdl/real\_prog\_rom.vhd} VHDL module related to the internal operation of the prog\_rom.
 \item \texttt{vhdl/serial\_test.vhd} A special prog\_rom module used to test the functionality of the UART.
-\item \texttt{bin/ratload\_win/} Windows graphical version of the ratload program. The files in this directory are all in support of the Windows ratload program and will not be described individually.
-\item \texttt{bin/ratload\_win.exe} Windows command-line version of the ratload program.
-\item \texttt{bin/ratload\_nix} Linux command-line version of the ratload program. 
-\item \texttt{bin/ratload\_osx} OS X command-line version of the ratload program.
+\item \texttt{bin/ratload\_Windows/} Windows graphical version of the ratload program. The files in this directory are all in support of the Windows ratload program and will not be described individually.
+\item \texttt{bin/ratload\_Windows\_x86.exe} Windows command-line version of the ratload program.
+\item \texttt{bin/ratload\_Linux\_x86\_64} Linux command-line version of the ratload program.
 \end{itemize}
-Please note there is no graphical ratload program for Linux and OS X.
+There is no graphical ratload program for Linux.
 
 \begin{infobox}
-  {\infosign} The binaries for Linux and OS X may not work for you! (Windows users can disregard this message) Your best bet if you are using a one of these OSes is to compile ratload from source. Instructions for building ratload from source are available in Section~\ref{sec:source_build}.
+  {\infosign} Running \texttt{ratload} on OS X is possible, but unsupported. You will have to build the program yourself. For more information see Section~\ref{sec:source_build}.
 \end{infobox}
 
 \subsection{Bug Reporting}
@@ -81,20 +82,32 @@ All programs have bugs. \texttt{ratload} is beta software and is no exception. I
 Since you are writing the mechanics of the CPU itself, it is possible for very odd bugs to happen, and for those bugs to interact with \texttt{ratload} in bizarre ways\ldots However \texttt{ratload} has been thoroughly tested and is free of any major bugs.
 
 \subsection{Contact}
-If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code -- including the \LaTeX ~source for this guide -- is available at \url{http://www.github.com/jhladky/ratload}.
+If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code --- including the \LaTeX ~source for this guide --- is available at \url{http://www.github.com/jhladky/ratload}.
 
-
-\section{Adding the UART}
-Before you can use \texttt{ratload}, you have to add a UART module to your CPU, which is required to communicate with the host computer. Adding the UART is similar to other I/O devices you have encountered such as the 7-segment display driver and the VGA buffer.
+\section{Adding the New RAT Wrapper}
+\texttt{Ratload} requires a UART to communicate with the host computer, which is provided as part of a new RAT wrapper module, which will replace your current wrapper. The new RAT wrapper provides access to the LEDs, and the buttons, and the switches. If you want to add any more I/O devices, such as the 7-segment display of the VGA driver buffer, then you will need to add them manually.
 
 \begin{infobox}
-  {\infosign} UART stands for ``Universal Asynchronous Receiver-Transmitter'', which you may recognize as another name for a serial port. The UART can be used outside of the \texttt{ratload} project as well. Consider using a UART in your own final project!
+  {\infosign} UART stands for ``Universal Asynchronous Receiver-Transmitter'', which you may recognize as another name for a serial port. The UART can be used outside of the \texttt{ratload} project as well. Consider using the UART in your own final project!
 \end{infobox}
 
-\subsection{Integration on to RAT CPU}
-This section will cover adding the UART module to the RAT CPU and hooking up all the pins to the right places. The UART module is provided by Digilent and is used unmodified here.
+\subsection{Integration with RAT CPU}
+
 \begin {enumerate}
-\item In the Xilinx ISE Environment, go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the \texttt{ratload} project directory (where this README is located), and then to the ``vhd'' folder. Select the ``RS232RefComp.vhd'' and ``ascii\_to\_int.vhd'' files and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
+\item In the Xilinx ISE Environment, go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the \texttt{ratload} project directory (where this README is located), and then to the ``vhd'' folder. Select the following modules:
+\begin{itemize}
+\item \texttt{rat\_wrapper.vhd}
+\item \texttt{uart.vhd}
+\item \texttt{ascii\_to\_int.vhd}
+\item \texttt{int\_to\_ascii.vhd}
+\item \texttt{RS232RefComp.vhd}
+\end{itemize}
+
+\begin{infobox}
+  {\warningsign} This is a destructive action and will overwrite any files already in your project directory that have a name identical to the files being added. You will have to confirm that you want to add the files.
+\end{infobox}
+
+Click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}.
 
 \item In the rat\_wrapper.ucf file (your title may differ slightly), add the following NETs if you have a Nexys 2 board:
 \begin{lstlisting}
@@ -108,125 +121,7 @@ NET "TXD" LOC = XX;
 NET "RXD" LOC = XX;
 \end{lstlisting}
 
-\item In the architecture section of the top-level rat\_wrapper module, add the following two lines to the entity declaration:
-\begin{lstlisting}
-RXD : in  STD\_LOGIC;
-TXD : out STD\_LOGIC;
-\end{lstlisting}
-
-\item In the same file, add the following component declaration, for the serial module:
-  \begin{lstlisting}
-component RS232RefComp
-   Port(
-      RXD      : in     STD_LOGIC;
-      RST      : in     STD_LOGIC := '0';
-      CLK      : in     STD_LOGIC;
-      DBIN     : in     STD_LOGIC_VECTOR(7 downto 0);
-      RD, WR   : in     STD_LOGIC;
-      RDA      : inout  STD_LOGIC;
-      TBE      : inout  STD_LOGIC := '1';
-      TXD      : out    STD_LOGIC := '1';
-      DBOUT    : out    STD_LOGIC_VECTOR(7 downto 0);
-      PE, FE   : out    STD_LOGIC;
-      OE       : out    STD_LOGIC);
-end component;
-\end{lstlisting}
-
-and for the ascii\_to\_int converter:
-\begin{lstlisting}
-component ascii_to_int
-   Port(
-      ascii_in : in     STD_LOGIC_VECTOR(7 downto 0);
-      int_out  : out    STD_LOGIC_VECTOR(7 downto 0));
-end component;
-\end{lstlisting}
-
-\item In the same section, add the following signals:
-\begin{lstlisting}
-signal s_d_avail      : STD_LOGIC;
-signal s_d_sent       : STD_LOGIC;
-signal s_d_strb       : STD_LOGIC;
-signal s_d_conf       : STD_LOGIC;
-signal s_db_from_rat  : STD_LOGIC_VECTOR(7 downto 0);
-signal s_db_to_conv   : STD_LOGIC_VECTOR(7 downto 0);
-signal s_db_to_rat    : STD_LOGIC_VECTOR(7 downto 0);
-\end{lstlisting}
-
-\item Add the following port map for the ascii\_to\_int module:
-\begin{lstlisting}
-CONV: ASCII_TO_INT port map(
-   ASCII_IN => S_DB_TO_CONV,
-   INT_OUT  => S_DB_TO_RAT);
-\end{lstlisting}
-
-Data sent over the UART will be ASCII encoded, but we want it to be in hex, so we convert it as soon as it gets out of the UART module. The \texttt{S\_DB\_TO\_CONV} signal receives an ASCII-encoded byte from the UART, and the \texttt{S\_DB\_TO\_RAT} signal has the output in binary.
-
-\item Add the \texttt{S\_DB\_TO\_RAT} signal to whatever method you use to get intputs into the RAT. For example, if you have a  separate input module, then send the signal into that module. If you manage your I/O in the rat\_wrapper module, then add an \texttt{elsif} block. The \texttt{PORT\_ID} for \textbf{input} from the UART is \textbf{0x0F}.
-
-\item Add the following port map for the RS232RefComp module:
-\begin{lstlisting}
-UART: RS232REFCOMP port map(
-   RXD     => RXD,
-   RST     => RST,
-   CLK     => CLK,
-   DBIN    => S_DB_FROM_RAT,
-   RD      => S_D_CONF,
-   WR      => S_D_STRB,
-   RDA     => S_D_AVAIL
-   TBE     => S_D_SENT,
-   TXD     => TXD,
-   DBOUT   => S_DB_TO_CONV,
-   FE      => open,
-   PE      => open,
-   OE      => open);
-\end{lstlisting}
-The following is a line-by-line breakdown of the port map:
-\begin{itemize}
-\item \texttt{RXD}: Receive port for the UART. Serial data goes into the physical UART on the Nexys board and then into this module.
-\item \texttt{RST}: Reset for the UART. Hook it up to the RAT's global reset. \textbf{The name of your reset pin may be different!}
-\item \texttt{CLK}: Clock for the UART. Hook it up to yer clock. \showclock {9}{0}
-\item \texttt{S\_DB\_FROM\_RAT}: Send bus.
-\item \texttt{S\_D\_CONF}: Read strobe. We take it high to confirm that data has been received.
-\item \texttt{S\_D\_STRB}: Write strobe. We take it high to indicate we have data on \texttt{S\_DB\_FROM\_RAT} to send.
-\item \texttt{S\_D\_AVAIL}: Indicates data is available to be read.
-\item \texttt{S\_D\_SEND}: Indicates data has been successfully sent.
-\item \texttt{TXD}: Transmit port for the UART, similar to the receive port.
-\item \texttt{DBOUT}: Receive bus
-\item \texttt{FE, PE, OE}: Error pins. ``Frame Error'', ``Parity Error'', and ``Output Error'', respectively. We're not concerned with checking for data errors so we leave these pins open.
-\end{itemize}
-
-\item Modify your outputs process (or module) to send data to the UART.
-\begin{infobox}
-  {\warningsign} \textbf{THIS IS A CRITICAL STEP!} I/O devices like the UART require more than just a simple data bus for proper operation. In the previous step you hooked-up several control signals to the UART modue, now you have to hook-up the other end! For convenience sake we will have the output process control these signals, and to make it really easy, an example output process is reproduced here.
-\end{infobox}
-You may need to adapt some of the signal names to fit your conventions. \textbf{Make sure to do so without changing the UART signals!}
-
-\begin{lstlisting}
-CONSTANT UART_OUT_ID   : STD_LOGIC_VECTOR(7 downto 0) := x"0E";
-
-outputs: process(CLK) begin
-   if (rising_edge(CLK)) then
-      s_d_strb <= '0';
-      s_d_conf <= '0';
-      if (S_IO_OE = '1') then
-         if (s_port_id = LEDS_ID) then
-            LEDS <= s_output_port;
-         elsif (s_port_id = UART_OUT_ID) then
-            s_db_from_rat <= s_output_port;
-            s_d_strb <= '1';
-            s_d_conf <= '1';
-         end if;
-      end if;
-   end if;
-end process outputs;
-\end{lstlisting}
-
-\item Make sure that you can successfully synthesize your RAT\_wrapper with the UART integrated. This is the last step in integrating the UART.
-\begin{infobox}
-  \textbf{{\warningsign}} You will receive the following warning about a latch:\\
-    \centerline{\texttt{Found 1-bit latch for signal \textless TBE\textgreater. Latches may be \ldots}}\\
-    This is a result of a flaw in the Digilent Romania provided UART module. It is safe to ignore. Any other latch, however, is not the result of this flaw and must be fixed!
-\end{infobox}
+\item That is all that's necessary to add the new RAT wrapper. However the signal names of your \textbf{RAT CPU module} may differ from those declared in the RAT wrapper. Change the signal names in the RAT wrapper as necessary and make sure you can generate a bit file.
 \end{enumerate}
 
 \subsection{Verification}
@@ -253,7 +148,7 @@ The easiest way to troubleshoot the UART module is to break out an actual serial
 \subsubsection{Obtaining a serial console}
 \begin{itemize}
 \item \textbf{Windows users --- } A good serial console for windows is putty. Download it here: \url{http://bit.ly/1jsQjnt}
-\item \textbf{Linux and OS X users --- } Install minicom with your package manager. If you are using a debian-based disto that looks like: \texttt{sudo apt-get install minicom}, or in OS X: \texttt{brew install minicom}.
+\item \textbf{Linux users --- } Install minicom with your package manager. If you are using a debian-based disto that looks like: \texttt{sudo apt-get install minicom}.
 \end{itemize}
 
 \begin{figure}[ht!]
@@ -268,7 +163,7 @@ The easiest way to troubleshoot the UART module is to break out an actual serial
 \item \textbf{Windows users --- }
   Run putty. From the \textbf{Connection Type} options, select the \textbf{Serial} radio button. Enter the COM port of your serial device in the \textbf{Serial Line} box. Before you can connect on the serial line you need to make sure it has the correct settings. Make your putty settings look like they do in Figure~\ref{fig:putty}. Remember that your COM port may differ. After you have entered the correct settings click \textbf{Open}.
 
-\item \textbf{Linux and OS X users --- } Start minicom from the terminal in config mode by using the \texttt{-s} flag, like so: \texttt{minicom -s}. Use your keyboard to navigate the configuration menu that pops up. Select the \textbf{Serial Port Setup} option. Make your minicom settings look like they do in Figure~\ref{fig:minicom}. Remember that your serial device and ``Lockfile Location'' may differ (you can ignore ``Lockfile Location'', actually). After you gave entered the correct settings hit escape until minicom dumps you out to the serial console window.
+\item \textbf{Linux users --- } Start minicom from the terminal in config mode by using the \texttt{-s} flag, like so: \texttt{minicom -s}. Use your keyboard to navigate the configuration menu that pops up. Select the \textbf{Serial Port Setup} option. Make your minicom settings look like they do in Figure~\ref{fig:minicom}. Remember that your serial device and ``Lockfile Location'' may differ (you can ignore ``Lockfile Location'', actually). After you gave entered the correct settings hit escape until minicom dumps you out to the serial console window.
 
 \begin{figure}[ht!]
   \centering
@@ -313,18 +208,18 @@ Once you have added the UART and verified that it is functioning correctly, the 
 \end{enumerate}
 
 \section{Installing the Ratload Program}
-Installation is really easy. For all platforms the command-line ratload binary is self-contained. Installation consists of copying the program to a location convenient to you. Make sure to choose the binary corresponding to your platform. Linux users need ``ratload\_nix'', OS X users need ``ratload\_osx'', and Windows users need ``ratload\_win.exe''. Instructions for using the grapical version of ratload (Windows only) and for building from source and included below.
+Installation is really easy. For all platforms the command-line ratload binary is self-contained. Installation consists of copying the program to a location convenient to you. Make sure to choose the binary corresponding to your platform. Linux users need ``ratload\_Linux\_x86\_64'', and Windows users need ``ratload\_Windows\_x86.exe''. The Windows binary is inside the ``ratload\_Windows'' directory. Instructions for using the grapical version of ratload (Windows only) and for building from source and included below.
 
 \subsection{Graphical ratload (Windows only)}
-The graphical version of the ratload program is located in the folder ``ratload\_win''. Copy the entire folder somewhere useful to you. The graphical program will not work without the container folder. There is no other installation step.
+The graphical version of the ratload program is located in the folder ``ratload\_Windows''. Copy the entire folder somewhere useful to you. The graphical program will not work without the container folder. There is no other installation step.
 
 \subsection{Building from source}
 \label{sec:source_build}
-The Windows versions of ratload contain statically linked binaries and thus are unlikely to malfunction across different versions of Windows. The Linux and OS X versions are not statically linked and if you have problems running them you should compile ratload from source.\\\\
-Ratload has no dependencies other than libc and should build and run on any POSIX-compliant OS. The source is available at \url{http://github.com/jhladky/ratload}, in the \texttt{nix} folder. Clone the repo and build the program with \texttt{make}.\\\\
-You must have some sort of build environment set up for this to work. Mac users should have XCode tools installed and get gcc or clang via homebrew/macports/fink, etc. GNU/Linux users should install gcc via their package manager. If you're using a debian based distribution, such as Linux Mint or Ubuntu, then the following will get everything you need:\\
-\centerline{\texttt{sudo apt-get install build-essential}}\\\\
-If you're using some other distro I'm not going to help you because you know what you're doing. After building the binary, follow the above instructions for your relevant OS.
+\begin{infobox}
+  {\infosign} This section is very technical and is advanced users only. If you do not have a solid understanding of the software build process it is safe to ignore this section.
+\end{infobox}
+
+Ratload is written in Java and is compiled to assembly by the GNU Compiler for Java (GCJ). Libgcj and Libgcc are statically linked into the binary on Windows and Linux (which is why the binary is so large). It is possible to build and link ratload dynamically on Linux and OS X. In fact, ratload should build on any POSIX-compliant OS. The source is available at \url{http://github.com/jhladky/ratload}, in the \texttt{src} folder.
 
 \section{Use}
 Up until now, you've probably followed this pattern when developing your assembly language programs:
@@ -343,17 +238,17 @@ How you identify your serial device will depend on what Nexys board you have as 
 
 \subsubsection{Nexys 2}
 If you have a serial port on your computer, congratulations, you are using a computer from the 20th century! Your OS almost certainly already has installed drivers to use this port, so you don't need to do anything else.\\\\
-If you don't have a serial port, then you need to obtain a USB-to-serial adapter cable. If you're on Windows, the manufacturer of the cable probably provided drivers for you to install along with the cable itself, make sure you install them. If you're using GNU/Linux or OS X, google around to try to find the right driver.\\\\
+If you don't have a serial port, then you need to obtain a USB-to-serial adapter cable. If you're on Windows, the manufacturer of the cable probably provided drivers for you to install along with the cable itself, make sure you install them. If you're using Linux, google around to try to find the right driver.\\\\
 Once you think you've installed the driver then you simply need to verify that the OS can see it. In Windows 7, go to the Start menu and right click Computer, and then click manage. Look for the serial device in the device management section of the console. 
 
 \subsubsection{Nexys 3}
-If you have a serial port on your computer, it doesn't matter, you can't use it! The Nexys 3 doesn't have a physical serial port, but instead emulates one with an FTDI chip. The USB cable you use to power and program the board also functions as a serial cable when it needs to. This means you need to install an FTDI driver. FTDI drivers for OS X and Windows 7 are included in the project folder. Install them and be glad you don't have to deal with USB-to-serial cable drivers!
+If you have a serial port on your computer, it doesn't matter, you can't use it! The Nexys 3 doesn't have a physical serial port, but instead emulates one with an FTDI chip. The USB cable you use to power and program the board also functions as a serial cable when it needs to. This means you need to install an FTDI driver. FTDI drivers for Windows 7 are included in the project folder. Install them and be glad you don't have to deal with USB-to-serial cable drivers!
 
 \subsubsection{Finding the port name}
 \begin{itemize}
 \item \textbf{Windows users --- } Run the graphical ratload program. The main window of the program contains a dropdown which lists your available serial devices. If you are using a USB-to-serial adapter the easiest way to be totally sure of the correct COM port number is to unplug the adapter and run the graphical ratload program. While the adapter is still unplugged, note the adapters listed. Then plug in the adapter and click \textbf{File > Refresh Serial Devices}. The COM port that appears in the dropdown is the COM port of the adapter.
 
-\item \textbf{Linux and OS X users --- } In GNU/Linux or OS X, list the contents of the \texttt{/dev} folder. In GNU/Linux your serial adapter will be called something similar to ``ttyS0''. In OS X, it will look like ``tty.usb0'' or similar.
+\item \textbf{Linux users --- } List the contents of the \texttt{/dev} folder. Your serial adapter will be called something like ``ttyUSB0''.
 \end{itemize}
 
 \subsection{Ratload Procedure}

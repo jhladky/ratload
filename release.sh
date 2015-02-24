@@ -22,10 +22,13 @@ fi
 
 mkdir $PRJ_DIR
 mkdir $PRJ_DIR/bin
+mkdir $PRJ_DIR/bin/ratload_Windows/
 mkdir $PRJ_DIR/vhdl
 
+cp RAT_CPU/uart.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/RS232RefComp.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/ascii_to_int.vhd $PRJ_DIR/vhdl/
+cp RAT_CPU/int_to_ascii.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/interceptor.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/prog_rom.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/prog_ram.vhd $PRJ_DIR/vhdl/
@@ -34,6 +37,8 @@ cp SERIAL_TEST/prog_rom.vhd $PRJ_DIR/vhdl/serial_test.vhd
 
 cp doc/README.pdf $PRJ_DIR
 
-cp nix/ratload $PRJ_DIR/bin/ratload_nix
+cp src/ratload_Linux_x86_64 $PRJ_DIR/bin/
 
-cp win/ratload.exe $PRJ_DIR/bin/ratload_win.exe
+cp src/ratload_Windows_x86.exe $PRJ_DIR/bin/ratload_Windows/
+cp src/app.py $PRJ_DIR/bin/ratload_Windows/
+cp src/ratload_logo.png $PRJ_DIR/bin/ratload_Windows/
