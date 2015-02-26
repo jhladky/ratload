@@ -14,7 +14,7 @@ if [ ! -e "doc/README.pdf" ]; then
     cd ..
 fi
 
-if [ ! -e "nix/ratload" ]; then
+if [ ! -e "bin/ratload_Linux_x86_64" ]; then
     cd nix
     make clean && make
     cd ..
@@ -37,8 +37,8 @@ cp SERIAL_TEST/prog_rom.vhd $PRJ_DIR/vhdl/serial_test.vhd
 
 cp doc/README.pdf $PRJ_DIR
 
-cp src/ratload_Linux_x86_64 $PRJ_DIR/bin/
+cp bin/ratload_Linux_x86_64 $PRJ_DIR/bin/
+cp bin/ratload_Windows_x86.exe $PRJ_DIR/bin/ratload_Windows/
 
-cp src/ratload_Windows_x86.exe $PRJ_DIR/bin/ratload_Windows/
-cp src/app.py $PRJ_DIR/bin/ratload_Windows/
-cp src/ratload_logo.png $PRJ_DIR/bin/ratload_Windows/
+cp win/app.py $PRJ_DIR/bin/ratload_Windows/
+cp win/ratload_logo.png $PRJ_DIR/bin/ratload_Windows/
