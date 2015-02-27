@@ -8,9 +8,6 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity outputs is
    Port( leds, seg   : out STD_LOGIC_VECTOR(7 downto 0); -- output to the board leds // 7-seg segments
          sel         : out STD_LOGIC_VECTOR(3 downto 0); -- output to the 7-seg enables
-         vga_wa      : out STD_LOGIC_VECTOR(10 downto 0);
-         vga_wd      : out STD_LOGIC_VECTOR(7 downto 0);
-         vga_we      : out STD_LOGIC;
          uart_out    : out STD_LOGIC_VECTOR(7 downto 0); -- output to the serial port
          port_id     : in  STD_LOGIC_VECTOR(7 downto 0); -- id of the currently active port
          output_port : in  STD_LOGIC_VECTOR(7 downto 0); -- current value of the output
@@ -23,9 +20,6 @@ architecture outputs_a of outputs is
 CONSTANT LEDS_ID     : STD_LOGIC_VECTOR(7 downto 0) := x"40";
 CONSTANT SSEG_ID     : STD_LOGIC_VECTOR(7 downto 0) := x"81";
 CONSTANT SERIAL_ID   : STD_LOGIC_VECTOR(7 downto 0) := x"0E";
-CONSTANT VGA_WD_ID   : STD_LOGIC_VECTOR(7 downto 0) := x"27";
-CONSTANT VGA_WA_HI5  : STD_LOGIC_VECTOR(7 downto 0) := x"26";
-CONSTANT VGA_WA_LO6  : STD_LOGIC_VECTOR(7 downto 0) := x"25";
 -------------------------------------------------------------------------------
 
 component sseg_dec is
@@ -64,7 +58,6 @@ clk_div1 : clk_div_sseg port map(
 OUTPUTS: process(clk) begin
    if (rising_edge(clk)) then
       if (io_oe = '1') then
-         vga_we <= '0';
          case (port_id) is
             when LEDS_ID => 
                LEDS <= output_port;
@@ -73,15 +66,7 @@ OUTPUTS: process(clk) begin
                sseg_in_i <= output_port;
             when SERIAL_ID =>
                uart_out <= output_port;
-            when VGA_WD_ID =>
-               vga_we <= '1';
-               vga_wd <= output_port;
-            when VGA_WA_HI5 => 
-               vga_wa(10 downto 6) <= output_port(4 downto 0);
-            when VGA_WA_LO6 => 
-               vga_wa(5 downto 0) <= output_port(5 downto 0);
-            when others  => 
-               LEDS <= x"00";
+            when others  =>
                sseg_valid_i <= '0';
                sseg_in_i <= (others => '0');
          end case;
