@@ -1,7 +1,6 @@
 #ifndef __RATLOAD_H__
 #define __RATLOAD_H__
 
-#define NUM_ARGS 5
 #define PROG_ROM_LINES 1024
 #define PROG_ROM_SEGS 5
 

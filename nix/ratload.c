@@ -16,6 +16,7 @@ static int program_board(const char* fileName, const char* portName);
 static int run_serial_test(const char* portName);
 static void loop_to_array(FILE * prog_rom);
 static inline char int_to_char(const uint8_t in);
+static int char_to_int(uint8_t* out, char in);
 
 static const char* err2Str[NUM_ERRORS + 1] = {
    "",                                    // 0
@@ -41,7 +42,7 @@ int main(const int argc, char* argv[]) {
       res = program_board(parsed[0], parsed[1]);
    }
 
-   if (res != 0) {
+   if (res) {
       fprintf(stderr, "%s\n", err2Str[res]);
    }
 
@@ -60,15 +61,17 @@ static int run_serial_test(const char* portName) {
       confirm = int_to_char(i);
       if (write(sp, &confirm, 1) < 1) {
          close(sp);
+         perror("write");
          return E_BAD_DEV;
       }
 
       if (read(sp, &confirm, 1) < 1) {
          close(sp);
+         perror("read");
          return E_BAD_DEV;
       }
 
-      if (confirm != i) {
+      if (confirm != int_to_char(i)) {
          return E_BAD_DATA;
       }
    }
@@ -77,9 +80,9 @@ static int run_serial_test(const char* portName) {
 }
 
 static int program_board(const char* fileName, const char* portName) {
-   uint8_t progRomArr[PROG_ROM_LINES][PROG_ROM_SEGS], c, topC;
+   uint8_t progRomArr[PROG_ROM_LINES][PROG_ROM_SEGS], b;
    char progRomProper[PROG_ROM_LINES][PROG_ROM_SEGS];
-   FILE * progRom; //fix this variable name later
+   FILE * progRom;
    char confirm;
    int i, j, fd, res;
 
@@ -87,47 +90,31 @@ static int program_board(const char* fileName, const char* portName) {
       return E_NO_FILE;
    }
 
-   //loop through the INIT prog_rom array
+   // Loop through the INIT prog_rom array.
    loop_to_array(progRom);
    for (i = 0; i < INIT_HEIGHT; i++) {
       for (j = 0; j < INIT_WIDTH; j++) {
-         c = fgetc(progRom);
-         if (c >= '0' && c <= '9') {
-            c -= '0';
-         } else if (c >= 'A' && c <= 'F') {
-            c = c - 'A' + 10;
-         } else {
+         if ((res = char_to_int(&b, fgetc(progRom)))) {
             fclose(progRom);
-            return E_BAD_FILE;
+            return res;
          }
-         progRomArr[(i * 16) + ((63 - j) / 4)][j % 4 + 1] = c;
+         progRomArr[(i * 16) + ((63 - j) / 4)][j % 4 + 1] = b;
       }
-      //the " at the end of the string:
+      // The " at the end of the string.
       fgetc(progRom);
       loop_to_array(progRom);
    }
 
-   //loop through the INITP prog_rom array
+   // Loop through the INITP prog_rom array.
    for (i = 0; i < INITP_HEIGHT; i++) {
       for (j = 0; j < INITP_WIDTH; j++) {
-         c = fgetc(progRom);
-         if (c >= '0' && c <= '9') {
-            c -= '0';
-         } else if (c >= 'A' && c <= 'F') {
-            c = c - 'A' + 10;
-         } else {
+         if ((res = char_to_int(&b, fgetc(progRom)))) {
             fclose(progRom);
-            return E_BAD_FILE;
+            return res;
          }
-         topC = c;
-         topC &= 0x0c;
-         topC = topC >> 2;
-         progRomArr[(i * 128) + ((63 - j) * 2) + 1][0] = topC;
-
-         c &= 0x03;
-         progRomArr[(i * 128) + ((63 - j) * 2)][0] = c;
+         progRomArr[(i * 128) + ((63 - j) * 2) + 1][0] = (b & 0X0C) >> 2;
+         progRomArr[(i * 128) + ((63 - j) * 2)][0] = b & 0x03;
       }
-
       fgetc(progRom);
       loop_to_array(progRom);
    }
@@ -145,66 +132,76 @@ static int program_board(const char* fileName, const char* portName) {
       return res;
    }
 
-   fprintf(stderr, "Connection opened: sending data...");
+   printf("Connection opened: sending data\n");
 
    //send the instructions to the UART
    for (i = 0; i < 1024; i++) {
       for (j = 4; j > -1; j--) {
          if (write(fd, &progRomProper[i][j], 1) < 1 ||
              read(fd, &confirm, 1) < 1) {
+            perror("write");
             return E_BAD_DEV;
          }
       }
-      if (!(i % 100)) {
-         fprintf(stderr, ".");
+      if (!(i % 103)) {
+         printf("%d%% ", (int) (i / 1024.0 * 100));
+         fflush(stdout);
       }
    }
 
-   printf("Finished!\n");
    close(fd);
+   printf("\nFinished.\n");
 
    return 0;
 }
 
 static int config_and_handshake(int* sp, const char* portName) {
    struct termios options;
-   uint8_t confirm = MAGIC_BYTE;
+   char confirm = MAGIC_BYTE;
 
    if ((*sp = open(portName, O_RDWR)) == -1) {
+      perror("open");
       return E_BAD_DEV;
    }
 
-   //configuration of the serial port
+   // Configuration of the serial port.
    if (tcgetattr(*sp, &options) == -1) {
+      perror("tcgetattr");
       return E_CONF_FAIL;
    }
 
-   cfsetispeed(&options, B9600);
-   cfsetospeed(&options, B9600);
-   options.c_cflag |= (CLOCAL | CREAD);
-   options.c_cflag |= PARENB;
-   options.c_cflag |= PARODD;
-   options.c_cflag &= ~CSTOPB;
-   options.c_cflag &= ~CSIZE;
-   options.c_cflag |= CS8;
-   options.c_cflag &= ~CRTSCTS; //disable hardware flow control
+   cfsetispeed(&options, B57600);
+   cfsetospeed(&options, B57600);
+   //options.c_cflag = CLOCAL | CREAD | PARENB | PARODD | CS8;
+   options.c_cflag = CLOCAL | CREAD | PARENB | PARODD | CS8;
+   options.c_iflag = 0;
+   options.c_oflag = 0;
+   options.c_lflag = ICANON;
 
    if (tcsetattr(*sp, TCSANOW, &options) == -1) {
       close(*sp);
+      perror("tcsetattr");
       return E_CONF_FAIL;
    }
 
+   fprintf(stderr, "HERE1 sp is %d\n", *sp);
+
    if (write(*sp, &confirm, 1) < 1) {
       close(*sp);
+      perror("write");
       return E_BAD_DEV;
    }
+   fprintf(stderr, "HERE2 sp is %d\n", *sp);
 
    confirm = 0;
 
    if (read(*sp, &confirm, 1) < 1) {
       close(*sp);
+      perror("read");
       return E_BAD_DEV;
    }
+
+   fprintf(stderr, "HERE3\n");
 
    if (confirm != MAGIC_BYTE) {
       close(*sp);
@@ -272,4 +269,18 @@ static void loop_to_array(FILE * progRom) {
 
 static inline char int_to_char(const uint8_t in) {
    return in + (in <= 9 ? '0' : ('A' - 10));
+}
+
+static int char_to_int(uint8_t* out, char in) {
+   int err = 0;
+
+   if (in >= '0' && in <= '9') {
+      *out = in - '0';
+   } else if (in >= 'A' && in <= 'F') {
+      *out = in - 'A' + 10;
+   } else {
+      err = E_BAD_FILE;
+   }
+
+   return err;
 }
