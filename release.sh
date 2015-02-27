@@ -1,30 +1,38 @@
 #!/bin/bash
 
-# This script should be run on a machine that can compile latex files and the POSIX version of the ratload program
-
-PRJ_DIR="project_master_v`cat .version`"
+VER=`cat .version`
+PRJ_DIR="release_v$VER"
 
 if [ -e $PRJ_DIR ]; then
     rm -rf $PRJ_DIR
+    rm release_v$VER.log
 fi
 
 if [ ! -e "doc/README.pdf" ]; then
-    cd doc
-    ./latex.sh
-    cd ..
+    echo "README.pdf not found, exiting..."
+    exit 1
 fi
 
-if [ ! -e "bin/ratload_Linux_x86_64" ]; then
-    cd nix
+if [ ! -e "src/ratload_Windows_x86.exe" ]; then
+    cd src
     make clean && make
     cd ..
 fi
 
+if [ -d "src/ratload_v$VER/" ]; then
+    rm -rf src/ratload_v$VER
+fi
+
+cd src
+/cygdrive/c/Python34/python.exe setup.py py2exe &>> ../release_v$VER.log
+rm -rf __pycache__ 
+mv dist ratload_v$VER
+cd ..
+
 mkdir $PRJ_DIR
-mkdir $PRJ_DIR/bin
-mkdir $PRJ_DIR/bin/ratload_Windows/
 mkdir $PRJ_DIR/vhdl
 
+cp RAT_CPU/rat_wrapper.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/uart.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/RS232RefComp.vhd $PRJ_DIR/vhdl/
 cp RAT_CPU/ascii_to_int.vhd $PRJ_DIR/vhdl/
@@ -37,8 +45,6 @@ cp SERIAL_TEST/prog_rom.vhd $PRJ_DIR/vhdl/serial_test.vhd
 
 cp doc/README.pdf $PRJ_DIR
 
-cp bin/ratload_Linux_x86_64 $PRJ_DIR/bin/
-cp bin/ratload_Windows_x86.exe $PRJ_DIR/bin/ratload_Windows/
-
-cp win/app.py $PRJ_DIR/bin/ratload_Windows/
-cp win/ratload_logo.png $PRJ_DIR/bin/ratload_Windows/
+cp -ar src/ratload_v$VER $PRJ_DIR/
+cp src/ratload_Windows_x86.exe $PRJ_DIR/ratload_v$VER/
+cp src/ratload_logo.png $PRJ_DIR/ratload_v$VER/

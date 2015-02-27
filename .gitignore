@@ -96,5 +96,9 @@ config.status
 *.dvi
 *.toc
 README.log
-   
+
+# Project releases
+release_v*.log
+release_v*
+src/ratload_v*
 
