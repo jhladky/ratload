@@ -42,6 +42,7 @@ cp RAT_CPU/rat_wrapper.vhd $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/inputs.vhd $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/outputs.vhd $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/rat_wrapper.ucf $PRJ_DIR/new_rat_wrapper/rat_wrapper_nexys2.ucf
+cp RAT_CPU/rat_wrapper_nexys3.ucf $PRJ_DIR/new_rat_wrapper/
 
 # Serial test module
 cp RAT_CPU/serial_test.vhd $PRJ_DIR/serial_test/
@@ -66,6 +67,7 @@ cp RAT_CPU/prog_ram.vhd $PRJ_DIR/new_prog_rom/
 cp RAT_CPU/real_prog_rom.vhd $PRJ_DIR/new_prog_rom/
 
 cp doc/README.pdf $PRJ_DIR
+cp doc/linux_and_osx.pdf $PRJ_DIR
 
 cp -ar src/ratload_v$VER $PRJ_DIR/
 cp src/ratload_Windows_x86.exe $PRJ_DIR/ratload_v$VER/
