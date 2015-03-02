@@ -101,4 +101,11 @@ README.log
 release_v*.log
 release_v*
 src/ratload_v*
+# The ratload binary
+src/ratload_Windows_x86.exe
 
+# Ratsim temporary files
+*.asl
+*.dbg
+*.err
+asm/prog_rom.vhd

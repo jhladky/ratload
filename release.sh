@@ -1,74 +1,77 @@
 #!/bin/bash
 
+OS=`uname`
 VER=`cat .version`
 PRJ_DIR="release_v$VER"
 
-if [ -e $PRJ_DIR ]; then
-    rm -rf $PRJ_DIR;
-fi
-
-if [ -e release_v$VER.log ]; then
-    rm release_v$VER.log
-fi
-
-if [ -e release_v$VER.zip ]; then
-    rm release_v$VER.zip
-fi
-
 if [ ! -e "doc/README.pdf" ]; then
-    echo "README.pdf not found, exiting..."
+    echo "README.pdf not found! Exit."
     exit 1
 fi
 
-if [ ! -e "src/ratload_Windows_x86.exe" ]; then
+if [ "$OS" = "CYGWIN_NT-6.1" ]; then
+    printf "Rebuilding ratload..........."
     cd src
-    make clean && make
+
+    if [ -d "ratload_v$VER" ]; then
+        rm -rf ratload_v$VER
+    fi
+
+    make clean && make &>> ../release_v$VER.log
+    /cygdrive/c/Python34/python.exe setup.py py2exe &>> ../release_v$VER.log
+    rm -rf __pycache__ 
+    mv dist ratload_v$VER
     cd ..
+    printf "DONE\n"
 fi
 
-if [ -d "src/ratload_v$VER/" ]; then
-    rm -rf src/ratload_v$VER
-fi
+printf "Removing old release files..."
+rm -rf $PRJ_DIR
+rm -f release_v$VER.log
+rm -f release_v$VER.zip
+printf "DONE\n"
 
-cd src
-/cygdrive/c/Python34/python.exe setup.py py2exe &>> ../release_v$VER.log
-rm -rf __pycache__ 
-mv dist ratload_v$VER
-cd ..
-
+printf "Copying RAT files............"
 mkdir $PRJ_DIR
-mkdir $PRJ_DIR/vhdl
+mkdir $PRJ_DIR/new_rat_wrapper
+mkdir $PRJ_DIR/new_prog_rom
+mkdir $PRJ_DIR/serial_test
 
 # Top-Level Modules
-cp RAT_CPU/rat_wrapper.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/inputs.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/outputs.vhd $PRJ_DIR/vhdl/
+cp RAT_CPU/rat_wrapper.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/inputs.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/outputs.vhd $PRJ_DIR/new_rat_wrapper/
+
+# Serial test module
+cp RAT_CPU/serial_test.vhd $PRJ_DIR/serial_test/
 
 # Random Number Generator I/O Device
-cp RAT_CPU/random.vhd $PRJ_DIR/vhdl/
+cp RAT_CPU/random.vhd $PRJ_DIR/new_rat_wrapper/
 
 # UART I/O Device
-cp RAT_CPU/uart.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/RS232RefComp.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/ascii_to_int.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/int_to_ascii.vhd $PRJ_DIR/vhdl/
+cp RAT_CPU/uart.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/RS232RefComp.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/ascii_to_int.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/int_to_ascii.vhd $PRJ_DIR/new_rat_wrapper/
 
 # 7-Segment Display I/O Device
-cp RAT_CPU/sseg_dec.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/clk_div_sseg.vhd $PRJ_DIR/vhdl/
+cp RAT_CPU/sseg_dec.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/clk_div_sseg.vhd $PRJ_DIR/new_rat_wrapper/
 
 # Prog-Rom Module
-cp RAT_CPU/interceptor.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/prog_rom.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/prog_ram.vhd $PRJ_DIR/vhdl/
-cp RAT_CPU/real_prog_rom.vhd $PRJ_DIR/vhdl/
-cp SERIAL_TEST/prog_rom.vhd $PRJ_DIR/vhdl/serial_test.vhd
+cp RAT_CPU/interceptor.vhd $PRJ_DIR/new_prog_rom/
+cp RAT_CPU/prog_rom.vhd $PRJ_DIR/new_prog_rom/
+cp RAT_CPU/prog_ram.vhd $PRJ_DIR/new_prog_rom/
+cp RAT_CPU/real_prog_rom.vhd $PRJ_DIR/new_prog_rom/
 
 cp doc/README.pdf $PRJ_DIR
 
 cp -ar src/ratload_v$VER $PRJ_DIR/
 cp src/ratload_Windows_x86.exe $PRJ_DIR/ratload_v$VER/
 cp src/ratload_logo.png $PRJ_DIR/ratload_v$VER/
+printf "DONE\n"
 
+printf "Zipping and cleaning up......"
 zip -r release_v$VER release_v$VER &>> release_v$VER.log
 rm -rf release_v$VER
+printf "DONE\n"
