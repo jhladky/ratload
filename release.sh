@@ -41,6 +41,7 @@ mkdir $PRJ_DIR/serial_test
 cp RAT_CPU/rat_wrapper.vhd $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/inputs.vhd $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/outputs.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/rat_wrapper.ucf $PRJ_DIR/new_rat_wrapper/rat_wrapper_nexys2.ucf
 
 # Serial test module
 cp RAT_CPU/serial_test.vhd $PRJ_DIR/serial_test/

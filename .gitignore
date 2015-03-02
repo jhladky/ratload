@@ -96,6 +96,7 @@ config.status
 *.dvi
 *.toc
 README.log
+linux_and_osx.log
 
 # Project releases
 release_v*.log
