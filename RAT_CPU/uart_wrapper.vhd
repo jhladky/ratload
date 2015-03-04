@@ -69,6 +69,7 @@ end component;
 	
    type state_type is (
       st_wait_receive,  -- Wait for the UART to receive data.
+      st_assert_int,    -- State to assert the interrupt for an extra tick.
       st_wait_rat,      -- Wait for the RAT CPU to proces the data.
       st_wait_send      -- Wait for the UART to send the data.
    );
@@ -117,10 +118,6 @@ process (clk, rst) begin
    end if;
 end process;
 
--- the main FSM. Behavior:
--- waits for the start signal, when recieved,
--- sends it back. this behavior is repeated for all other data.
-
 -- We're listening to s_in_ack, to know when we've successfully sent data,
 -- and s_out_stb, to know when there is data available to us.
 process(ps, s_conv_to_uart, s_uart_to_conv, s_in_ack, s_out_stb, data_in, s_expect) begin
@@ -137,8 +134,11 @@ process(ps, s_conv_to_uart, s_uart_to_conv, s_in_ack, s_out_stb, data_in, s_expe
             int <= '1';
             s_expect_strb <= '1';
             s_expect_new <= s_uart_to_conv;
-            ns <= st_wait_rat;
+            ns <= st_assert_int;
          end if;
+      when st_assert_int =>
+         int <= '1';
+         ns <= st_wait_rat;
       when st_wait_rat =>
          ns <= st_wait_rat;
          if (s_conv_to_uart = s_expect) then
