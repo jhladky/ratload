@@ -35,7 +35,6 @@ printf "Copying RAT files............"
 mkdir $PRJ_DIR
 mkdir $PRJ_DIR/new_rat_wrapper
 mkdir $PRJ_DIR/new_prog_rom
-mkdir $PRJ_DIR/serial_test
 
 # Top-Level Modules
 cp RAT_CPU/rat_wrapper.vhd $PRJ_DIR/new_rat_wrapper/
@@ -44,8 +43,8 @@ cp RAT_CPU/outputs.vhd $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/rat_wrapper.ucf $PRJ_DIR/new_rat_wrapper/rat_wrapper_nexys2.ucf
 cp RAT_CPU/rat_wrapper_nexys3.ucf $PRJ_DIR/new_rat_wrapper/
 
-# Serial test module
-cp RAT_CPU/serial_test.vhd $PRJ_DIR/serial_test/
+# Copy the testing folder verbatim
+cp -ar testing $PRJ_DIR/
 
 # Random Number Generator I/O Device
 cp RAT_CPU/random.vhd $PRJ_DIR/new_rat_wrapper/
