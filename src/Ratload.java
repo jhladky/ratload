@@ -235,15 +235,15 @@ public class Ratload {
          SerialPortException,
          TimeoutException {
       port.openPort();
-      port.setParams(57600, 8, 1, 1, false, false);
+      port.setParams(115200, 8, 1, SerialPort.PARITY_NONE, false, false);
 
-      try {
+      /*try {
          bytert(port, MAGIC_BYTE);
       } catch (Ratload.SerialDataException e) {
          // Convert the SerialDataException to a HandshakeException
          // in this special case.
          throw new Ratload.HandshakeException();
-      }
+         }*/
    }
 
    private static void bytert(SerialPort port, byte b) throws
