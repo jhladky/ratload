@@ -51,8 +51,8 @@ cp RAT_CPU/serial_test.vhd $PRJ_DIR/serial_test/
 cp RAT_CPU/random.vhd $PRJ_DIR/new_rat_wrapper/
 
 # UART I/O Device
-cp RAT_CPU/uart.vhd $PRJ_DIR/new_rat_wrapper/
-cp RAT_CPU/RS232RefComp.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/uart_wrapper.vhd $PRJ_DIR/new_rat_wrapper/
+cp uart/source/uart.vhd     $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/ascii_to_int.vhd $PRJ_DIR/new_rat_wrapper/
 cp RAT_CPU/int_to_ascii.vhd $PRJ_DIR/new_rat_wrapper/
 
