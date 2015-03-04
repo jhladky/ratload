@@ -67,8 +67,8 @@ OUTPUTS: process(clk) begin
             when SERIAL_ID =>
                uart_out <= output_port;
             when others  =>
-               sseg_valid_i <= '0';
-               sseg_in_i <= (others => '0');
+               -- sseg_valid_i <= '0';
+               -- sseg_in_i <= (others => '0');
          end case;
       end if;
    end if;

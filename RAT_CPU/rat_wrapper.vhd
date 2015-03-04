@@ -49,9 +49,9 @@ component outputs is
          io_oe, clk  : in  STD_LOGIC);
 end component;
 
-component uart is
-   Port( txd		   : out STD_LOGIC := '1';
-         rxd		   : in  STD_LOGIC := '1';
+component uart_wrapper is
+   Port( tx		      : out STD_LOGIC;
+         rx 		   : in  STD_LOGIC;
          clk, rst    : in  STD_LOGIC;
          int         : out STD_LOGIC;
 			data_out	   : out STD_LOGIC_VECTOR(7 downto 0); 
@@ -100,9 +100,9 @@ outputs1 : outputs port map(
 	clk         => clk);
 	
 -- Instantiate UART -----------------------------------------------------------
-uart1 : uart port map(
-   txd         => tx, 
-   rxd         => rx,
+uart_wrapper1 : uart_wrapper port map(
+   tx          => tx, 
+   rx          => rx,
    clk         => clk,
    rst         => rst,
    int         => int_i,
