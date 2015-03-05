@@ -70,11 +70,12 @@ The following is a general overview of the files in the system.
 All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in the ratload program, please contact the author. It is also possible that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.\\\\
 Since you are writing the mechanics of the CPU itself, it is possible for very odd bugs to happen, and for those bugs to interact with \texttt{ratload} in bizarre ways\ldots Please note that \texttt{ratload} has been thoroughly tested and is free of any major bugs.
 
-\subsection{Contact}
-If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code --- including the \LaTeX ~source for this guide --- is available at \url{http://www.github.com/jhladky/ratload}. \texttt{Ratload} system releases are available at \url{http://homecrest.hladky.me/ratload/}.
+\subsection{Project Information}
+If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code --- including the \LaTeX ~source for this guide --- is available at \url{http://www.github.com/jhladky/ratload}. Ratload system releases are available at \url{http://homecrest.hladky.me/ratload/}.\\\\
+This project uses a UART module authored by Peter A. Bennett and released under the LGPL. The source for that module is available at \url{https://github.com/pabennett/uart}.
 
 \subsection{Changelog}
-Version 1 03/03/15
+Version 1 03/02/15
 \begin{itemize}
   \item Initial project release.
 \end{itemize}
@@ -85,6 +86,12 @@ Version 2 03/04/15
 \item Renamed ``serial\_test'' directory to ``testing''.
 \item Added reference bit file to ``testing'' directory.
 \item Clarified and improved some of the installation instructions, and added instructions about using the reference bit file to the troubleshooting section. Added a section about interrupts.
+\end{itemize}
+Version 3 03/05/15
+\begin{itemize}
+\item Fixed a bug in the ratload program where serial device names would be concatenated together.
+\item Added an instruction in Section 3 telling users to remove any previous prog roms, and fixed typos in Secs 2.1 and 2.2.
+\item Renamed ``Contact'' section to ``Project Information''. Added credit for UART module.
 \end{itemize}
 
 \section{Adding the New RAT Wrapper}
@@ -106,7 +113,7 @@ Version 2 03/04/15
   {\warningsign} Double check you have backed up your RAT project! Otherwise you could lose everything!
 \end{infobox}
 
-\item Navigate to the \texttt{ratload} proejct directory (where this README is located), and then to the ``new\_rat\_wrapper'' directory. If you have a Nexys 2 board, \underline{delete} the ``rat\_wrapper\_nexys3.ucf'' file and rename the ``rat\_wrapper\_nexys2.ucf'' file to ``rat\_wrapper.ucf''. If you have a Nexys 3 board, do the opposite.
+\item Navigate to the \texttt{ratload} project directory (where this README is located), and then to the ``new\_rat\_wrapper'' directory. If you have a Nexys 2 board, \underline{delete} the ``rat\_wrapper\_nexys3.ucf'' file and rename the ``rat\_wrapper\_nexys2.ucf'' file to ``rat\_wrapper.ucf''. If you have a Nexys 3 board, do the opposite.
 
 \item Go to \textbf{Project \textgreater Add Copy of Source}. Select all the files in the ``new\_rat\_wrapper'' directory and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK} to confirm.
 
@@ -119,7 +126,7 @@ Version 2 03/04/15
 
 \subsection{Verification}
 \label{sec:verification}
-This section covers a quick test of the new RAT wrapper. you just integrated into your RAT CPU. If the test in this section is not 100\% successful \textbf{DO NOT CONTINUE}. Go back and double check that you have integrated the UART properly. If the UART continues not to work, see Section~\ref{sec:troubleshooting}. \texttt{Ratload} \textbf{WILL NOT WORK} unless your UART bahaves exactly as expected!
+This section covers a quick test of the new RAT wrapper. you just integrated into your RAT CPU. If the test in this section is not 100\% successful \textbf{DO NOT CONTINUE}. Go back and double check that you have integrated the UART properly. If the UART continues not to work, see Section~\ref{sec:troubleshooting}. \texttt{Ratload} \textbf{WILL NOT WORK} unless your UART behaves exactly as expected!
 
 \begin{enumerate}
 \item Delete your current prog\_rom module from ISE by right-clicking on the file and clicking \textbf{Remove}. Then right-click again and select \textbf{Add Copy of Source}. Navigate to the ``testing'' directory and add the ``serial\_test.vhd'' file. This will replace your current prog\_rom module with the prog\_rom module in the ``serial\_test.vhd'' file.
@@ -140,6 +147,8 @@ This section covers a quick test of the new RAT wrapper. you just integrated int
 \section{Adding the New Prog\_Rom module}
 Once you have added the UART and verified that it is functioning correctly, the remaining steps are simple.
 \begin{enumerate}
+\item Select the prog\_rom file in your RAT CPU and right-click \textbf{Remove}.
+
 \item Go to \textbf{Project \textgreater Add Copy of Source}. Navigate to the ``new\_prog\_rom'' directory and select all the modules within. Click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK}. If it asks you about overwriting any files, click \textbf{OK}.
 
 \item In the architecture section of the rat\_cpu module, edit the component declaration for the prog\_rom module. Add the following line:\\
