@@ -12,8 +12,7 @@ class App:
         frame = Tk.Frame(master)
 
         top_menu = Tk.Menu(master)
-        file_menu = Tk.Menu(top_menu, tearoff=0)
-        help_menu = Tk.Menu(top_menu, tearoff=0)
+        actions_menu = Tk.Menu(top_menu, tearoff=0)
 
         logo_png = Image.open("ratload_logo.png")
         logo_png = logo_png.resize((100, 100), Image.ANTIALIAS)
@@ -47,18 +46,16 @@ class App:
             width=40
         )
         
-        file_menu.add_command(label="Refresh Serial Devices",
+        actions_menu.add_command(label="Refresh Serial Devices",
                               command=self.refresh_serial_devices)
-        file_menu.add_command(label="Run Serial Test",
+        actions_menu.add_command(label="Run Serial Test",
                               command=self.run_serial_test)
-        file_menu.add_command(label="Clear Results Area",
+        actions_menu.add_command(label="Clear Results Area",
                               command=self.clear_results)
-        file_menu.add_command(label="Exit", command=root.quit)
-        top_menu.add_cascade(label="File", menu=file_menu)
-
-        help_menu.add_command(label="About / License", command=self.show_help)
-        top_menu.add_cascade(label="Help", menu=help_menu)
-        
+        actions_menu.add_command(label="About / License",
+                                 command=self.show_help)
+        actions_menu.add_command(label="Exit", command=root.quit)
+        top_menu.add_cascade(label="Menu", menu=actions_menu)
         master.config(menu=top_menu)
 
         logo_label.photo = logo
@@ -151,8 +148,13 @@ class App:
             )
             proc.wait()
             self.device_entry.delete(0, Tk.END)
-            for device in proc.stdout.readlines():
-                self.device_entry.insert(Tk.END, device.strip())
+            devices = [i.strip().decode("utf-8") for i in
+                       proc.stdout.readlines()]
+            self.device_entry['values'] = devices
+            if len(devices):
+                self.device_entry.current(0)
+            else:
+                self.device_entry.insert(0, "__NO_DEVICES_FOUND__")
             return
 
         thread = threading.Thread(target=run)
@@ -164,8 +166,10 @@ class App:
 root = Tk.Tk()
 app = App(root)
 
+version = open(".version", "r")
+
 root.resizable(width=Tk.FALSE, height=Tk.FALSE)
 root.geometry("{}x{}".format(410, 620))
-root.wm_title("ratload_Windows_x86")
+root.wm_title("ratload_v" + version.read().strip())
 
 root.mainloop()

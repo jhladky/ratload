@@ -22,6 +22,7 @@ if [ "$OS" = "CYGWIN_NT-6.1" ]; then
     rm -rf __pycache__ 
     mv dist ratload_v$VER
     cd ..
+    cp .version src/ratload_v$VER
     printf "DONE\n"
 fi
 
