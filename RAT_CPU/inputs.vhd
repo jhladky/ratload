@@ -11,6 +11,7 @@ entity inputs is
          buttons     : in  STD_LOGIC_VECTOR(2 downto 0);
          switches    : in  STD_LOGIC_VECTOR(7 downto 0);  -- the current value of the switches on the Nexsys board
          uart_in     : in  STD_LOGIC_VECTOR(7 downto 0);  -- input from the serial port
+         vga_in      : in  STD_LOGIC_VECTOR(7 downto 0);
          port_id     : in  STD_LOGIC_VECTOR(7 downto 0)); -- the currently active port_id
 end inputs;
 
@@ -18,6 +19,7 @@ architecture Behavioral of inputs is
 -- INPUT PORT IDS -------------------------------------------------------------
 CONSTANT SWITCHES_ID : STD_LOGIC_VECTOR(7 downto 0) := X"20"; 
 CONSTANT SERIAL_ID   : STD_LOGIC_VECTOR(7 downto 0) := x"0F";
+CONSTANT VGA_ID      : STD_LOGIC_VECTOR(7 downto 0) := x"15";
 CONSTANT RANDOM_ID   : STD_LOGIC_VECTOR(7 downto 0) := x"1B";
 CONSTANT BUTTONS_ID  : STD_LOGIC_VECTOR(7 downto 0) := x"21";
 
@@ -34,10 +36,11 @@ random1 : random port map(
    random_num => rand_i);
 
 -- Mux for selecting what input to read -----------------------------------
-process(port_id, switches, uart_in, rand_i, buttons) begin
+process(port_id, switches, uart_in, vga_in, rand_i, buttons) begin
    case (port_id) is
       when SWITCHES_ID  => input_port <= switches;
       when SERIAL_ID    => input_port <= uart_in;
+      when VGA_ID       => input_port <= vga_in;
       when RANDOM_ID    => input_port <= rand_i;
       when BUTTONS_ID   => input_port <= "00000" & buttons;
       when others       => input_port <= x"00";
