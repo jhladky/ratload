@@ -4,8 +4,8 @@ OS=`uname`
 VER=`cat .version`
 PRJ_DIR="release_v$VER"
 
-if [ ! -e "doc/README.pdf" ]; then
-    echo "README.pdf not found! Exit."
+if [ ! -e "doc/handbook.pdf" ]; then
+    echo "handbook.pdf not found! Exit."
     exit 1
 fi
 
@@ -66,7 +66,9 @@ cp RAT_CPU/prog_rom.vhd $PRJ_DIR/new_prog_rom/
 cp RAT_CPU/prog_ram.vhd $PRJ_DIR/new_prog_rom/
 cp RAT_CPU/real_prog_rom.vhd $PRJ_DIR/new_prog_rom/
 
-cp doc/README.pdf $PRJ_DIR
+# Copy documentation
+cp doc/README $PRJ_DIR
+cp doc/handbook.pdf $PRJ_DIR
 cp doc/linux_and_osx.pdf $PRJ_DIR
 
 cp -ar src/ratload_v$VER $PRJ_DIR/

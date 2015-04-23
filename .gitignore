@@ -95,8 +95,9 @@ config.status
 *.aux
 *.dvi
 *.toc
-README.log
+handbook.log
 linux_and_osx.log
+doc/texput.log
 
 # Project releases
 release_v*.log

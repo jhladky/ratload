@@ -1,0 +1,26 @@
+-------------------
+|     RATLOAD     |
+| BY JACOB HLADKY |
+-------------------
+
+To get started: read the ratload handbook.
+
+Ratload is designed for Windows but can be run on other platforms. GNU/Linux and OS X users should read the "linux_and_osx" PDF as well as the handbook.
+
+
+Project Changelog
+-----------------
+Version 1 03/02/15
+   * Initial project release.
+
+Version 2 03/04/15
+   * Switched to using a new UART.
+   * Fixed a bug in the UART wrapper where the interrupt wasn't being asserted for more than one clock tick. In CPUs that only checked for the interrupt flag in one clock cycle, the interrupt wouldn't be detected.
+   * Renamed "serial_test" directory to "testing".
+   * Added reference bit file to "testing" directory.
+   * Clarified and improved some of the installation instructions, and added instructions about using the reference bit file to the troubleshooting section. Added a section about interrupts.
+
+Version 3 03/05/15
+   * Fixed a bug in the ratload program where serial device names would be concatenated together.
+   * Added an instruction in Section 3 telling users to remove any previous prog roms, and fixed typos in Secs 2.1 and 2.2.
+   * Renamed "Contact" section to "Project Information". Added credit for UART module.

@@ -32,7 +32,7 @@ innerleftmargin=5pt,innerrightmargin=5pt]{infobox}
 
 \begin{document}
 
-\title{\huge{\texttt{ratload}\\ Installation and Use}}
+\title{\huge{The \texttt{ratload} Handbook}}
 \author{
   Jacob Hladky\\
   California Polytechnic State University\\
@@ -74,28 +74,8 @@ Since you are writing the mechanics of the CPU itself, it is possible for very o
 If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code --- including the \LaTeX ~source for this guide --- is available at \url{http://www.github.com/jhladky/ratload}. Ratload system releases are available at \url{http://homecrest.hladky.me/ratload/}.\\\\
 This project uses a UART module authored by Peter A. Bennett and released under the LGPL. The source for that module is available at \url{https://github.com/pabennett/uart}.
 
-\subsection{Changelog}
-Version 1 03/02/15
-\begin{itemize}
-  \item Initial project release.
-\end{itemize}
-Version 2 03/04/15
-\begin{itemize}
-\item Switched to using a new UART.
-\item Fixed a bug in the UART wrapper where the interrupt wasn't being asserted for more than one clock tick. In CPUs that only checked for the interrupt flag in one clock cycle, the interrupt wouldn't be detected.
-\item Renamed ``serial\_test'' directory to ``testing''.
-\item Added reference bit file to ``testing'' directory.
-\item Clarified and improved some of the installation instructions, and added instructions about using the reference bit file to the troubleshooting section. Added a section about interrupts.
-\end{itemize}
-Version 3 03/05/15
-\begin{itemize}
-\item Fixed a bug in the ratload program where serial device names would be concatenated together.
-\item Added an instruction in Section 3 telling users to remove any previous prog roms, and fixed typos in Secs 2.1 and 2.2.
-\item Renamed ``Contact'' section to ``Project Information''. Added credit for UART module.
-\end{itemize}
-
 \section{Adding the New RAT Wrapper}
-\texttt{Ratload} requires a UART to communicate with the host computer, which is provided as part of a new RAT wrapper module, which will replace your current wrapper. The new RAT wrapper provides access to the LEDs, and the buttons, and the switches, and the 7-segment display. If you want to add any more I/O devices, such as the VGA driver buffer, you will need to add them manually.
+\texttt{Ratload} requires a UART to communicate with the host computer, which is provided as part of a new RAT wrapper module, which will replace your current wrapper. The new RAT wrapper provides access to the LEDs, switches, 7-segment display, buttons, and VGA port. If you want to use other I/O devices, such as the mouse or keyboard, you will need to integrate them with the RAT wrapper yourself.
 
 \begin{infobox}
   {\infosign} UART stands for ``Universal Asynchronous Receiver-Transmitter'', which you may recognize as another name for a serial port. The UART can be used outside of the \texttt{ratload} system as well. If you would like more info about using the UART in your final project, contact the author.
