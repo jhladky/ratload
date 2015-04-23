@@ -58,7 +58,7 @@ Do not integrate ratload into your RAT CPU until all the major components of the
 \subsection{Project Manifest}
 The following is a general overview of the files in the system.
 \begin{itemize}
-\item \texttt{README.pdf} This guide.
+\item \texttt{handbook.pdf} This guide.
 \item \texttt{linux\_and\_osx.pdf} Instructions for using ratload on GNU/Linux and OS X platforms.
 \item \texttt{new\_rat\_wrapper/} VHDL files necessary to integrate the new rat\_wrapper.
 \item \texttt{new\_prog\_rom/} VHDL files necessary to integrate the new prog\_rom.
@@ -67,19 +67,23 @@ The following is a general overview of the files in the system.
 \end{itemize}
 
 \subsection{Bug Reporting}
-All programs have bugs. \texttt{ratload} is beta software and is no exception. If you encounter a bug in the ratload program, please contact the author. It is also possible that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.\\\\
+All programs have bugs. \texttt{Ratload} is beta software and is no exception. If you encounter a bug in the ratload program, please contact the author. It is also possible that you find a bug in the project VHDL modules. If you do please verify the bug via simulation and report it immediately so it can be fixed.\\\\
 Since you are writing the mechanics of the CPU itself, it is possible for very odd bugs to happen, and for those bugs to interact with \texttt{ratload} in bizarre ways\ldots Please note that \texttt{ratload} has been thoroughly tested and is free of any major bugs.
 
 \subsection{Project Information}
-If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author at jhladky@calpoly.edu. This project licensed under the MIT license and the complete source code --- including the \LaTeX ~source for this guide --- is available at \url{http://www.github.com/jhladky/ratload}. Ratload system releases are available at \url{http://homecrest.hladky.me/ratload/}.\\\\
+If you have any questions about the project itself, or suggestions for improvement for this guide, please contact the author at \href{mailto:jhladky@calpoly.edu}{jhladky@calpoly.edu}. This project licensed under the MIT license and the complete source code --- including the \LaTeX ~source for this guide --- is available at \url{http://www.github.com/jhladky/ratload}. Ratload system releases are available at \url{http://homecrest.hladky.me/ratload/}.\\\\
 This project uses a UART module authored by Peter A. Bennett and released under the LGPL. The source for that module is available at \url{https://github.com/pabennett/uart}.
 
 \section{Adding the New RAT Wrapper}
-\texttt{Ratload} requires a UART to communicate with the host computer, which is provided as part of a new RAT wrapper module, which will replace your current wrapper. The new RAT wrapper provides access to the LEDs, switches, 7-segment display, buttons, and VGA port. If you want to use other I/O devices, such as the mouse or keyboard, you will need to integrate them with the RAT wrapper yourself.
+\texttt{Ratload} requires a UART to communicate with the host computer, which is provided as part of a new RAT wrapper module, which will replace your current wrapper. Figure~\ref{fig:ratwrapper} shows how your RAT CPU will fit into the new wrapper.\\\\
+Note that all the I/O devices, such as the 7-segment display and the buttons, have been moved into ``input'' and ``output'' modules. The new RAT wrapper provides access to the LEDs, switches, 7-segment display, buttons, and VGA. If you need to use some other I/O device, such as the mouse or keyboard, you will need to integrate it with the RAT wrapper yourself.
 
-\begin{infobox}
-  {\infosign} UART stands for ``Universal Asynchronous Receiver-Transmitter'', which you may recognize as another name for a serial port. The UART can be used outside of the \texttt{ratload} system as well. If you would like more info about using the UART in your final project, contact the author.
-\end{infobox}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=1\textwidth]{rat_wrapper.png}
+  \caption{Overview of RAT Wrapper components}
+  \label{fig:ratwrapper}
+\end{figure}
 
 \subsection{Integration with RAT CPU}
 
@@ -93,7 +97,7 @@ This project uses a UART module authored by Peter A. Bennett and released under 
   {\warningsign} Double check you have backed up your RAT project! Otherwise you could lose everything!
 \end{infobox}
 
-\item Navigate to the \texttt{ratload} project directory (where this README is located), and then to the ``new\_rat\_wrapper'' directory. If you have a Nexys 2 board, \underline{delete} the ``rat\_wrapper\_nexys3.ucf'' file and rename the ``rat\_wrapper\_nexys2.ucf'' file to ``rat\_wrapper.ucf''. If you have a Nexys 3 board, do the opposite.
+\item Navigate to the \texttt{ratload} project directory (where this handbook is located), and then to the ``new\_rat\_wrapper'' directory. If you have a Nexys 2 board, \underline{delete} the ``rat\_wrapper\_nexys3.ucf'' file and rename the ``rat\_wrapper\_nexys2.ucf'' file to ``rat\_wrapper.ucf''. If you have a Nexys 3 board, do the opposite.
 
 \item Go to \textbf{Project \textgreater Add Copy of Source}. Select all the files in the ``new\_rat\_wrapper'' directory and click \textbf{Open}. Another dialog box will pop up confirming you want to add these files. Click \textbf{OK} to confirm.
 
@@ -106,7 +110,11 @@ This project uses a UART module authored by Peter A. Bennett and released under 
 
 \subsection{Verification}
 \label{sec:verification}
-This section covers a quick test of the new RAT wrapper. you just integrated into your RAT CPU. If the test in this section is not 100\% successful \textbf{DO NOT CONTINUE}. Go back and double check that you have integrated the UART properly. If the UART continues not to work, see Section~\ref{sec:troubleshooting}. \texttt{Ratload} \textbf{WILL NOT WORK} unless your UART behaves exactly as expected!
+This section covers a quick test of the new RAT wrapper you just integrated into your RAT CPU. If the test in this section is not 100\% successful \textbf{DO NOT CONTINUE}. Go back and double check that you have integrated the UART properly. If the UART continues not to work, see Section~\ref{sec:troubleshooting}. \texttt{Ratload} \textbf{WILL NOT WORK} unless your UART behaves exactly as expected!
+
+\begin{infobox}
+  {\infosign} UART stands for ``Universal Asynchronous Receiver-Transmitter'', which you may recognize as another name for a serial port. The UART can be used outside of the \texttt{ratload} system as well. If you would like more info about using the UART in your final project, contact the author.
+\end{infobox}
 
 \begin{enumerate}
 \item Delete your current prog\_rom module from ISE by right-clicking on the file and clicking \textbf{Remove}. Then right-click again and select \textbf{Add Copy of Source}. Navigate to the ``testing'' directory and add the ``serial\_test.vhd'' file. This will replace your current prog\_rom module with the prog\_rom module in the ``serial\_test.vhd'' file.
@@ -124,7 +132,7 @@ This section covers a quick test of the new RAT wrapper. you just integrated int
 \item If the test indicates ``PASS'', proceed to the next section. Otherwise go straight to Section~\ref{sec:troubleshooting}. Do not pass Go. Do not collect \$200.
 \end{enumerate}
 
-\section{Adding the New Prog\_Rom module}
+\section{Adding the New Prog\_Rom Module}
 Once you have added the UART and verified that it is functioning correctly, the remaining steps are simple.
 \begin{enumerate}
 \item Select the prog\_rom file in your RAT CPU and right-click \textbf{Remove}.
@@ -137,8 +145,15 @@ Once you have added the UART and verified that it is functioning correctly, the 
 \item In the same file, edit the port map decaration for the prog\_rom module. Map the signal for the RAT CPU's tristate bus into to the prog\_rom module's tristate bus. The RAT CPU's ``tristate\_bus'' may be called the ``MULTI\_BUS'' in your CPU. (Regardless of its name, this is the bus that connects the ALU, the program counter, the scratch pad, and others.) That line will look similar to this:\\
   \centerline{\texttt{tristate\_in =\textgreater ~tristate\_bus\_sig(7 downto 0),}}
 
-\item Synthesize and generate a bit file for your newly integrated system. That's it! \texttt{Ratload} should work on your CPU now. The next sections cover installing and using the ratload program.
+\item Synthesize and generate a bit file for your newly integrated system. That's it! Figure~\ref{fig:progrom} shows what the updated prog\_rom module should look like. \texttt{Ratload} should work on your CPU now. The next sections cover how to set up the ratload program on your computer.
 \end{enumerate}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=.5\textwidth]{prog_rom.png}
+  \caption{Updated prog\_rom Black Box Diagram}
+  \label{fig:progrom}
+\end{figure}
 
 \section{Installation and Use of the ratload Program}
 \label{sec:installation}
@@ -155,9 +170,9 @@ Up until now, you've probably followed this pattern when developing your assembl
 \item Repeat ad infinitum.
 \end{enumerate}
 The steps you have just followed to integrate the vhd files into your RAT CPU, and to install the ratload program onto your computer, will dramatically change this pattern. From now on you do not need to resynthesize your project when ratsim generates a new prog\_rom.vhd file, nor is it necessary to copy that new file into your project. In fact, \textbf{making any more changes to the prog\_rom.vhd file in your project directory will break \texttt{ratload}}.\\\\
-This section contains instructions for identifying the serial device you need to use to communicate with the Nexys board, an overview of the \texttt{ratload} procedure, and instructions on using either the command-line or the graphical (Windows only) ratload program.
+This section contains instructions for identifying the serial device you need to use to communicate with the Nexys board, an overview of the \texttt{ratload} procedure, and instructions on using the ratload program.
 
-\subsection{Identifying your Serial Device}
+\subsection{Identifying Your Serial Device}
 \label{sec:serial_id}
 How you identify your serial device will depend on what Nexys board you have as well as whether you are using a USB-serial adapter or not. Before you identify your serial device you need to make sure you have the correct drivers installed for it. This sounds a lot more complicated than it really is. Follow either of the following sections based on which Nexys board version you have to make sure you have the right drivers installed.
 
@@ -169,7 +184,7 @@ Once you think you've installed the driver then you simply need to verify that t
 \subsubsection{Nexys 3}
 If you have a serial port on your computer, it doesn't matter, you can't use it! The Nexys 3 doesn't have a physical serial port, but instead emulates one. Those drivers should have been installed when you installed the Adept software, so you're good to go.
 
-\subsubsection{Finding the port name}
+\subsubsection{Finding the Port Name}
 Run the graphical ratload program. The main window of the program contains a dropdown which lists your available serial devices. If you are using a USB-to-serial adapter the easiest way to be totally sure of the correct COM port number is to unplug the adapter and note the adapters listed. Then plug in the adapter and click \textbf{File > Refresh Serial Devices}. The COM port that appears in the dropdown is the COM port of the adapter.
 
 \subsection{Ratload Procedure}
@@ -190,10 +205,32 @@ Run the graphical ratload program. The main window of the program contains a dro
 \texttt{Ratload} uses a UART to communicate with the host computer. The UART requires an interrupt, and the RAT CPU only has one interrupt. This creates a problem if you want to add I/O devices like a mouse, that also require an interrupt. A suggested solution is to \texttt{OR} the interrupts together.\\\\
 Because the UART is only active during the programming stage, it will not trigger an ISR while your program is running. A more extensible solution would be to add multiple I/O interrupts, but for our purposes this is sufficient.
 
+\section{How It Works}
+The assembly programs that you create with RatSim and copy into your CPU are in fact RAMs that simply have the write strobe permanently tied low, hence the name prog\_\textbf{rom}. When you synthesize your CPU with the prog\_rom module in place, Xilinx is hard-coding your instructions into the ``hardware'' of the CPU. As you know very well by now, every time you want to modify your assembly program you have to re-synthesize the entire project.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=1\textwidth]{prog_rom_internal.png}
+  \caption{Prog\_rom Internal Operation}
+  \label{fig:prog_rom_internal}
+\end{figure}
+
+The solution to this problem presented by \texttt{ratload} uses a UART and a special prog\_rom module. There are several other ways to reprogram the CPU without re-synthesis, but the UART+new prog\_rom approach was chosen for two reasons. First, minimal modification of the CPU. The only change required to the RAT architecture is the addition of the tristate-, or multi-, bus to the prog\_rom module. This way users already familiar with their CPUs will not be confused by architecture changes. Second, the simplicity of the UART. Other I/O options, such as USB or ethernet (available on the Nexys 3 board) require complex hardware drivers and have intricate handshaking procedures easy to mis-implement. UART is universal and dead simple.\\\\
+Thus the project can be decomposed into two parts: the new prog\_rom module and the UART. As mentioned, the UART is just another I/O device. The prog\_rom contains the only complicated logic in the system. Figure~\ref{fig:prog_rom_internal} shows the internal operation of the new prog\_rom. The updated prog\_rom is just a wrapper --- like the RAT wrapper --- for three modules:
+
+\begin{enumerate}
+\item \textbf{real\_prog\_rom}: A ``bootloader'' assembly program. The structure of this module is idential to the prog\_rom module you have been using so far.
+\item \textbf{prog\_ram}: A RAM module.
+\item \textbf{interceptor}: A state-machine that controls which module, either the prog\_ram or the real\_prog\_rom, feeds instructions to the CPU.
+\end{enumerate}
+
+The CPU starts up and immediately starts running code in the real\_prog\_rom module. This code spin-waits until it receives an interrupt from the UART. The interrupt indicates that an instruction is available in the UART buffer. The ``bootloader'' program then issues a special assembly instruction called ``LOADPR''. The interceptor sees this instruction and takes the data from the serial port buffer and writes it to the prog\_ram.\\\\
+When 1024 instructions have been sent, the interceptor switches control of the CPU from the real\_prog\_rom to the prog\_ram. It resets the program counter and clears all interrupts and flags. Then execution of the new program starts.
+
 \section{Troubleshooting}
 \label{sec:troubleshooting}
 
-\subsection{Checking your serial cable with the reference bit file}
+\subsection{Checking Your Serial Cable with the Reference Bit File}
 The following procedure will verify that your serial adapter is working and that the ratload program is working. Loosely speaking, this section tests the ``host side'' of the system, whereas subsequent sections test the ``VHDL side'' of the system.
 
 \begin{enumerate}
@@ -204,20 +241,20 @@ The following procedure will verify that your serial adapter is working and that
 
 \subsection{Troubleshooting the UART Module}
 The easiest way to troubleshoot the UART module is to break out an actual serial console and see what it's sending to the computer. So that's what we're going to do. You will need to know what your serial device is called on your computer. To do so see Section~\ref{sec:serial_id}.
-\subsubsection{Obtaining a serial console}
+\subsubsection{Obtaining a Serial Console}
 A good serial console for Windows is RealTerm. Download and install it from here: \url{http://www.i2cchip.com/realterm/}
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=0.75\textwidth]{fig0.png}
+  \includegraphics[width=1\textwidth]{realterm.png}
   \caption{The correct settings to use with RealTerm}
   \label{fig:realterm}
 \end{figure}
 
-\subsubsection{Configuring the proper serial console settings}
+\subsubsection{Configuring the Proper Serial Console Settings}
 Run RealTerm. Click on the \textbf{Port} tab. Make your RealTerm settings look like they do in Figure~\ref{fig:realterm}. Make sure to click \textbf{Change} to apply the settings. Remember that your COM port may differ.
 
-\subsubsection{Using the serial console to troubleshoot the UART}
+\subsubsection{Using the Serial Console to Troubleshoot the UART}
 Once you have your serial console up and running flash your Nexys board with your bit file that has the serial test program on it. (Make sure you've connected the Nexys board to your computer with the serial cable).\\\\
 Send some data to the UART from the serial console. This is done by typing in the serial console. The behavior of the serial test program is as follows:
 \begin{enumerate}
@@ -233,7 +270,7 @@ You are looking for the following behavior when interacting with the serial test
 \end{enumerate}
 If you receive two characters back, if you receive no characters back, if you receive a flood of characters back, or anything that is not that exactly what you typed, then you have integrated the RAT wrapper incorrectly.
 
-\subsection{Troubleshooting the Ratload program}
+\subsection{Troubleshooting the Ratload Program}
 Ratload can fail in several different ways. This section lists all possible error messages, an explanation of each, and a suggestion on how to resolve the error.
 
 \begin{itemize}

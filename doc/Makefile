@@ -14,3 +14,4 @@ all: handbook linux_and_osx
 
 clean:
 	@rm -f handbook.{aux,log,out,pdf,toc}
+	@rm -f linux_and_osx.{aux,log,out,pdf,toc}

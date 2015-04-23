@@ -6,4 +6,4 @@ This repo only contains source files. Ratload releases are available at: http://
 * The GNU Compiler for Java. The `gcj` executable must be in your PATH.
 * Python 3, Pillow, and py2exe
   
-Full ratload documentation is available in the doc/README.pdf file.
+Full ratload documentation is available in the doc/handbook.pdf file.

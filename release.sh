@@ -38,42 +38,47 @@ mkdir $PRJ_DIR/new_rat_wrapper
 mkdir $PRJ_DIR/new_prog_rom
 
 # Top-Level Modules
-cp RAT_CPU/rat_wrapper.vhd $PRJ_DIR/new_rat_wrapper/
-cp RAT_CPU/inputs.vhd $PRJ_DIR/new_rat_wrapper/
-cp RAT_CPU/outputs.vhd $PRJ_DIR/new_rat_wrapper/
-cp RAT_CPU/rat_wrapper.ucf $PRJ_DIR/new_rat_wrapper/rat_wrapper_nexys2.ucf
+cp RAT_CPU/rat_wrapper.vhd        $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/inputs.vhd             $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/outputs.vhd            $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/rat_wrapper.ucf        $PRJ_DIR/new_rat_wrapper/rat_wrapper_nexys2.ucf
 cp RAT_CPU/rat_wrapper_nexys3.ucf $PRJ_DIR/new_rat_wrapper/
 
 # Copy the testing folder verbatim
-cp -ar testing $PRJ_DIR/
+cp -ar testing                    $PRJ_DIR/
 
 # Random Number Generator I/O Device
-cp RAT_CPU/random.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/random.vhd             $PRJ_DIR/new_rat_wrapper/
 
 # UART I/O Device
-cp RAT_CPU/uart_wrapper.vhd $PRJ_DIR/new_rat_wrapper/
-cp uart/source/uart.vhd     $PRJ_DIR/new_rat_wrapper/
-cp RAT_CPU/ascii_to_int.vhd $PRJ_DIR/new_rat_wrapper/
-cp RAT_CPU/int_to_ascii.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/uart_wrapper.vhd       $PRJ_DIR/new_rat_wrapper/
+cp uart/source/uart.vhd           $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/ascii_to_int.vhd       $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/int_to_ascii.vhd       $PRJ_DIR/new_rat_wrapper/
 
 # 7-Segment Display I/O Device
-cp RAT_CPU/sseg_dec.vhd $PRJ_DIR/new_rat_wrapper/
-cp RAT_CPU/clk_div_sseg.vhd $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/sseg_dec.vhd           $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/clk_div_sseg.vhd       $PRJ_DIR/new_rat_wrapper/
+
+# VGA I/O Device
+cp RAT_CPU/VGADrive.vhd           $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/vga_clk_div.vhd        $PRJ_DIR/new_rat_wrapper/
+cp RAT_CPU/vgaDriverBuffer.vhd    $PRJ_DIR/new_rat_wrapper/
 
 # Prog-Rom Module
-cp RAT_CPU/interceptor.vhd $PRJ_DIR/new_prog_rom/
-cp RAT_CPU/prog_rom.vhd $PRJ_DIR/new_prog_rom/
-cp RAT_CPU/prog_ram.vhd $PRJ_DIR/new_prog_rom/
-cp RAT_CPU/real_prog_rom.vhd $PRJ_DIR/new_prog_rom/
+cp RAT_CPU/interceptor.vhd        $PRJ_DIR/new_prog_rom/
+cp RAT_CPU/prog_rom.vhd           $PRJ_DIR/new_prog_rom/
+cp RAT_CPU/prog_ram.vhd           $PRJ_DIR/new_prog_rom/
+cp RAT_CPU/real_prog_rom.vhd      $PRJ_DIR/new_prog_rom/
 
 # Copy documentation
-cp doc/README $PRJ_DIR
-cp doc/handbook.pdf $PRJ_DIR
-cp doc/linux_and_osx.pdf $PRJ_DIR
+cp doc/README                     $PRJ_DIR
+cp doc/handbook.pdf               $PRJ_DIR
+cp doc/linux_and_osx.pdf          $PRJ_DIR
 
-cp -ar src/ratload_v$VER $PRJ_DIR/
-cp src/ratload_Windows_x86.exe $PRJ_DIR/ratload_v$VER/
-cp src/ratload_logo.png $PRJ_DIR/ratload_v$VER/
+cp -ar src/ratload_v$VER          $PRJ_DIR/
+cp src/ratload_Windows_x86.exe    $PRJ_DIR/ratload_v$VER/
+cp src/ratload_logo.png           $PRJ_DIR/ratload_v$VER/
 printf "DONE\n"
 
 printf "Zipping and cleaning up......"
